@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Gastos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800&family=Outfit:wght@400;600;700;800&family=Poppins:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=Montserrat:wght@400;600;700;800&family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;600;700;800&family=Playfair+Display:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --yellow: #fbbf24;
+      --warn: #f59e0b;
+    }
+    :root[data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #0284c7;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --yellow: #d97706;
+      --warn: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Lexend', system-ui, -apple-system, Segoe UI, sans-serif;
+      font-weight: 700;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .app { width: 100%; max-width: 720px; margin: auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    h1 { font-size: 1.6rem; }
+    .sub { color: var(--muted); font-size: .9rem; margin-bottom: 16px; }
+    .theme-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .head-btns { display: flex; gap: 8px; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      display: none;
+      overflow-y: auto;
+      z-index: 200;
+      padding: 20px;
+    }
+    .modal.show { display: flex; }
+    .modal-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      margin: auto;
+      overflow-y: auto;
+    }
+    .modal-card h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: 14px; }
+    .setting { margin-bottom: 18px; }
+    .setting .s-label { color: var(--muted); font-size: .8rem; margin-bottom: 8px; display: block; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+    .swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; }
+    .swatch.sel { border-color: var(--text); }
+    .font-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .font-opt {
+      padding: 10px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      font-size: 1rem;
+    }
+    .font-opt.sel { border-color: var(--accent); color: var(--accent); }
+    .mode-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mode-opt {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+    }
+    .mode-opt.sel { border-color: var(--accent); color: var(--accent); }
+    .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-btns button { cursor: pointer; font-family: inherit; font-weight: 800; }
+    button.close { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+    .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .tab {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+    }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .panel h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .hidden { display: none; }
+
+    .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .card { min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    .card .label { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; overflow-wrap: anywhere; }
+    .card .value { font-size: 1.2rem; font-weight: 800; margin-top: 5px; overflow-wrap: anywhere; }
+    .card.usd .value { color: var(--success); }
+    .card.ves .value { color: var(--accent); }
+    .card.total .value { color: var(--yellow); }
+
+    .budget { margin-bottom: 16px; }
+    .budget-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .budget-row label { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+    .budget-row input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-weight: 700; }
+    .bar-track { height: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
+    .bar-fill { height: 100%; width: 0%; transition: width .3s, background .3s; }
+    .bar-fill.ok { background: var(--success); }
+    .bar-fill.warn { background: var(--warn); }
+    .bar-fill.over { background: var(--danger); }
+    .budget-status { margin-top: 6px; font-size: .8rem; color: var(--muted); }
+    .budget-label { margin-top: 6px; font-size: .8rem; color: var(--muted); }
+
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .filters .tab { width: auto; padding: 8px 12px; }
+    .date-range { display: none; gap: 8px; width: 100%; }
+    .date-range.visible { display: flex; }
+    .date-range input { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; color-scheme: dark; }
+    :root[data-theme="light"] .date-range input { color-scheme: light; }
+
+    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+    #desc { grid-column: 1 / -1; }
+    form button.add { grid-column: 1 / -1; }
+    input, select, button {
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: .93rem;
+      font-family: inherit;
+      font-weight: 700;
+    }
+    input:focus, select:focus { outline: 2px solid var(--accent); }
+    button.add { background: var(--accent); color: #fff; font-weight: 800; border: none; cursor: pointer; }
+    button.add:hover { filter: brightness(1.1); }
+
+    .toolbar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 10px; }
+    .toolbar button { cursor: pointer; border: none; font-family: inherit; font-weight: 700; }
+    button.export { background: var(--success); color: #fff; }
+    button.pdf { background: var(--accent); color: #fff; }
+
+    .list { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .item:last-child { border-bottom: none; }
+    .item .desc { overflow-wrap: anywhere; }
+    .item .date { color: var(--muted); font-size: .75rem; white-space: nowrap; overflow-wrap: anywhere; }
+    .item .amount.usd { color: var(--success); font-weight: 800; overflow-wrap: anywhere; }
+    .item .amount.ves { color: var(--accent); font-weight: 800; overflow-wrap: anywhere; }
+    .chip {
+      font-size: .72rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .del { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 1.1rem; }
+    .edit { background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 1.05rem; }
+    .main { min-width: 0; }
+    .item .main .desc { overflow-wrap: anywhere; }
+    .item .meta { color: var(--muted); font-size: .72rem; margin-top: 2px; overflow-wrap: anywhere; }
+    .actions { display: flex; gap: 6px; align-items: center; }
+
+    .userbar { margin-bottom: 14px; }
+    .userbar label { color: var(--muted); font-size: .85rem; margin-bottom: 6px; display: block; }
+    .user-row { display: flex; gap: 8px; }
+    .user-row select { flex: 1; min-width: 0; }
+    .user-row input { flex: 1; min-width: 0; }
+    .cur-user { margin-top: 6px; color: var(--muted); font-size: .8rem; display: flex; align-items: center; gap: 8px; }
+    .cur-user b { color: var(--accent); }
+    #logoutBtn {
+      margin-left: auto;
+      color: var(--danger);
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: .78rem;
+      cursor: pointer;
+    }
+
+    .log { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .log-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .log-item:last-child { border-bottom: none; }
+    .log-ic { font-size: 1rem; width: 22px; text-align: center; }
+    .log-main { min-width: 0; }
+    .log-text { overflow-wrap: anywhere; font-weight: 600; }
+    .log-user { color: var(--accent); font-weight: 800; }
+    .log-time { color: var(--muted); font-size: .72rem; text-align: right; white-space: nowrap; }
+
+    .form-btns { display: grid; grid-template-columns: auto 1fr; gap: 8px; grid-column: 1 / -1; }
+    button.cancel { background: var(--danger); color: #fff; border: none; cursor: pointer; font-weight: 800; font-family: inherit; }
+    #comment { grid-column: 1 / -1; }
+
+    .add-cat { display: flex; gap: 8px; margin-bottom: 12px; }
+    .add-cat input { flex: 1; min-width: 0; }
+    .add-cat-btn { background: var(--card); border: 1px solid var(--border); cursor: pointer; font-family: inherit; font-weight: 800; white-space: nowrap; }
+    .add-cat-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .custom-cats { margin-bottom: 12px; }
+    .custom-cats .cc-title { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .custom-cat-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; }
+    .custom-cat-row .cc-ic { font-size: 1rem; }
+    .custom-cat-row .cc-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+    .auth {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      overflow-y: auto;
+      padding: 20px;
+      z-index: 100;
+    }
+    .auth.hidden { display: none; }
+    .auth-card { width: 100%; max-width: 360px; margin: auto; }
+    .auth-card h1 { font-size: 1.5rem; margin-bottom: 4px; }
+    .auth-card .sub { margin-bottom: 18px; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .auth-form { display: flex; flex-direction: column; gap: 10px; }
+    .auth-form input { width: 100%; }
+    .auth-form button { padding: 13px; }
+    button.primary { background: var(--accent); color: #fff; border: none; cursor: pointer; font-weight: 800; font-family: inherit; }
+    button.primary:hover { filter: brightness(1.1); }
+    .auth-msg { color: var(--danger); font-size: .8rem; min-height: 1em; }
+    .auth-ok { color: var(--success); font-size: .8rem; }
+    .auth-links { display: flex; justify-content: center; }
+    .link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: .8rem; font-family: inherit; text-decoration: underline; }
+
+    .notif-banner { display: none; margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(239,68,68,.12); border: 1px solid var(--danger); color: var(--danger); }
+    .notif-banner.show { display: block; }
+    .notif-banner .nb-title { font-weight: 800; margin-bottom: 6px; }
+    .notif-banner li { font-size: .85rem; padding: 3px 0; border-top: 1px solid rgba(239,68,68,.2); list-style: none; }
+    .notif-banner li:first-child { border-top: none; }
+    .nb-activate { display: inline-block; margin-top: 8px; padding: 8px 12px; border: 1px solid var(--danger); background: none; color: var(--danger); border-radius: 8px; font-family: inherit; font-weight: 800; cursor: pointer; font-size: .8rem; }
+    .nb-activate:hover { background: var(--danger); color: #fff; }
+    .nb-blocked { display: block; margin-top: 8px; font-size: .75rem; opacity: .85; }
+
+    .consejo { margin-bottom: 16px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); }
+    .consejo .tip-tag { color: var(--accent); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+    .consejo .tip-title { font-weight: 800; margin: 4px 0 4px; }
+    .consejo .tip-text { font-size: .88rem; line-height: 1.45; color: var(--text); }
+
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cal-nav button { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; width: 40px; height: 40px; cursor: pointer; font-size: 1.1rem; font-family: inherit; }
+    .cal-month { font-weight: 800; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 14px; }
+    .cal-dow { text-align: center; color: var(--muted); font-size: .7rem; padding: 4px 0; }
+    .cal-cell { position: relative; aspect-ratio: 1; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: .88rem; }
+    .cal-cell.empty { background: none; border: none; cursor: default; }
+    .cal-cell.today { border-color: var(--accent); }
+    .cal-cell.sel { background: var(--accent); color: #fff; }
+    .cal-cell.has .dot { position: absolute; bottom: 3px; left: 0; right: 0; margin: auto; width: 5px; height: 5px; border-radius: 50%; background: var(--danger); }
+
+    .day-title { font-weight: 800; margin: 4px 0 8px; }
+    .day-events { margin-bottom: 10px; }
+    .event-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+    .event-main { min-width: 0; }
+    .event-main .e-title { font-weight: 800; overflow-wrap: anywhere; }
+    .event-main .e-note { color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
+    .event-amount { margin-left: auto; font-weight: 800; color: var(--yellow); white-space: nowrap; }
+    .upcoming-title { font-weight: 800; margin: 12px 0 8px; }
+    .upcoming ul { list-style: none; }
+    .upcoming li { padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; font-size: .85rem; }
+    .upcoming li b { color: var(--accent); }
+    .event-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+    .event-form .f-title { grid-column: 1 / -1; }
+    .event-form button { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; font-family: inherit; font-weight: 800; cursor: pointer; }
+    .empty { color: var(--muted); text-align: center; padding: 28px; }
+    .hint { margin-top: 12px; color: var(--muted); font-size: .85rem; text-align: center; }
+
+    .bcv { margin-bottom: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; }
+    .bcv-info { flex: 1; min-width: 0; }
+    .bcv-label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+    .bcv-rate { font-size: 1.3rem; font-weight: 800; color: var(--yellow); margin-top: 4px; overflow-wrap: anywhere; }
+    .bcv-update { color: var(--muted); font-size: .72rem; margin-top: 2px; }
+    button.use { background: var(--yellow); color: #0f172a; font-weight: 800; border: none; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    button.use:hover { filter: brightness(1.1); }
+    button.use:disabled { opacity: .5; cursor: default; }
+
+    .rate { margin-bottom: 16px; }
+    .rate label { display: block; color: var(--muted); font-size: .85rem; margin-bottom: 6px; }
+    .rate input { width: 100%; font-size: 1rem; }
+
+    .conv { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .conv-title { font-weight: 800; margin-bottom: 12px; font-size: 1.05rem; }
+    .conv-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+    .conv-field label { display: block; color: var(--muted); font-size: .8rem; margin-bottom: 6px; }
+    .conv-field input { width: 100%; font-size: 1.1rem; text-align: center; }
+    .conv-arrow { color: var(--accent); font-size: 1.4rem; font-weight: 800; }
+    .conv-note { color: var(--muted); font-size: .76rem; margin-top: 10px; }
+
+    .chart-box { margin-top: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    .chart-title { font-weight: 800; margin-bottom: 10px; font-size: .95rem; }
+    canvas { width: 100%; height: 150px; }
+
+    .receipt-wrap { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .receipt-btn {
+      display: block;
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .9rem;
+      text-align: center;
+      font-family: inherit;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .receipt-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .receipt-btn.cam { border-style: solid; border-color: var(--accent); color: var(--accent); }
+    .receipt-wrap.has .receipt-btn { border-color: var(--success); color: var(--success); }
+    .receipt-name { grid-column: 1 / -1; font-size: .72rem; color: var(--muted); margin-top: 5px; overflow-wrap: anywhere; }
+    .item .thumb {
+      display: block;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      margin-top: 6px;
+    }
+
+    .stats-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; min-width: 0; }
+    .stat-card .sc-label { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-card .sc-val { font-size: 1.12rem; font-weight: 800; margin-top: 5px; overflow-wrap: anywhere; }
+    .stat-card.current .sc-val { color: var(--accent); }
+    .stat-card.prev .sc-val { color: var(--muted); }
+    .stat-card.diff.pos .sc-val { color: var(--success); }
+    .stat-card.diff.neg .sc-val { color: var(--danger); }
+    .stat-card.diff.zero .sc-val { color: var(--muted); }
+
+    #catLegend { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; font-size: .82rem; }
+    #catLegend .lg-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    #catLegend .lg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    #catLegend .lg-label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    #catLegend .lg-val { font-weight: 800; white-space: nowrap; }
+    #catLegend .lg-spark { width: 48px; height: 16px; flex-shrink: 0; }
+
+    .group-head { font-weight: 800; margin: 18px 0 12px; font-size: 1.05rem; padding-top: 4px; }
+    .goal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .goal-form button { background: var(--accent); color: #fff; border: none; font-family: inherit; font-weight: 800; cursor: pointer; grid-column: 1 / -1; }
+    .goal { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .goal-head { display: flex; align-items: center; gap: 8px; }
+    .goal-head .g-name { font-weight: 800; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .goal .bar-track { margin: 10px 0 6px; }
+    .goal .g-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); }
+    .goal .g-meta input { width: 90px; padding: 6px 8px; }
+    .goal .g-meta .g-savebtn { background: var(--card); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .goal .g-meta .g-savebtn:hover { border-color: var(--accent); color: var(--accent); }
+    .goal .g-status { font-weight: 800; margin-left: auto; }
+    .goal .g-status.done { color: var(--success); }
+
+    .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.82); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; cursor: zoom-out; }
+    .lightbox.show { display: flex; }
+    .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
+    .toolbar button.backup { background: var(--yellow); color: #0f172a; }
+    .toolbar button.restore { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .toolbar-btn {
+      display: inline-block;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-size: .92rem;
+    }
+    .toolbar-btn.donate { background: var(--yellow); color: #0f172a; }
+    .toolbar-btn.donate:hover { filter: brightness(1.08); }
+    .toolbar-btn.contact { background: var(--accent); color: #fff; }
+    .toolbar-btn.contact:hover { filter: brightness(1.08); }
+
+    /* Manual */
+    .manual-toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .manual-toc a { display: block; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); text-decoration: none; font-weight: 700; font-size: .82rem; overflow-wrap: anywhere; text-align: center; }
+    .manual-toc a:hover { border-color: var(--accent); color: var(--accent); }
+    .m-sec { margin-bottom: 22px; }
+    .m-sec h3 { font-size: 1.12rem; font-weight: 800; margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .m-sec h4 { font-size: .95rem; font-weight: 800; margin: 14px 0 8px; color: var(--accent); }
+    .m-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+    .m-box p { margin: 0 0 8px; font-size: .9rem; line-height: 1.55; }
+    .m-box p:last-child { margin-bottom: 0; }
+    .m-box ul, .m-box ol { margin: 6px 0 8px 20px; font-size: .88rem; line-height: 1.6; }
+    .m-box li { margin-bottom: 5px; }
+    .blueprint { border-left: 4px solid var(--accent); }
+    .tipV { border-left: 4px solid var(--yellow); }
+    .warnV { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, .06); }
+    .okV { border-left: 4px solid var(--success); }
+    .concept { display: grid; grid-template-columns: minmax(0, 1fr) 1fr; gap: 10px; align-items: start; }
+    .example-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 6px; }
+    .example-table th, .example-table td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; overflow-wrap: anywhere; }
+    .example-table th { background: var(--card); color: var(--accent); }
+    .mono { font-family: Consolas, monospace; background: var(--card); padding: 1px 5px; border-radius: 5px; font-size: .8em; }
+    .mock-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: .82rem; }
+    .mock-form .mf { background: var(--card); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; color: var(--muted); }
+    .mock-form .mf.full { grid-column: 1 / -1; }
+    .mock-form .mf b { color: var(--text); font-weight: 700; }
+
+    footer.app-footer { margin-top: 24px; padding: 16px 4px; border-top: 1px solid var(--border); color: var(--muted); font-size: .78rem; line-height: 1.7; }
+    footer.app-footer h4 { color: var(--text); font-size: .9rem; margin-bottom: 8px; }
+    footer.app-footer a { color: var(--accent); text-decoration: none; word-break: break-all; }
+    footer.app-footer a:hover { text-decoration: underline; }
+    footer.app-footer .ref-links { display: flex; flex-direction: column; gap: 3px; overflow-wrap: anywhere; }
+    footer.app-footer p { margin: 8px 0 0; }
+
+    @media (max-width: 640px) {
+      .concept { grid-template-columns: 1fr; }
+      .mock-form { grid-template-columns: 1fr; }
+      .mock-form .mf.full { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 640px) {
+      .stats-cards { grid-template-columns: 1fr; }
+      .goal-form { grid-template-columns: 1fr; }
+      .goal-form button { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 640px) {
+      .manual-toc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .manual-toc a { padding: 9px 6px; font-size: .78rem; }
+      .m-box { padding: 11px 12px; }
+      .m-box ul, .m-box ol { margin-left: 16px; }
+      .example-table { font-size: .76rem; }
+      .example-table th, .example-table td { padding: 5px 6px; }
+      .m-sec h3 { font-size: 1.02rem; }
+      .chart-title { font-size: .85rem; }
+      .stats-cards { gap: 8px; }
+      .toolbar-btn.donate, .toolbar-btn.contact { flex: 1 1 100%; text-align: center; }
+      footer.app-footer { font-size: .75rem; }
+    }
+
+    @media (max-width: 380px) {
+      .manual-toc { grid-template-columns: 1fr; }
+      #catLegend .lg-row { flex-wrap: wrap; }
+      #catLegend .lg-val { flex-basis: 100%; text-align: right; white-space: normal; }
+      .m-box p { font-size: .85rem; }
+    }
+
+    #printReport { display: none; }
+    @media print {
+      body { align-items: flex-start; padding: 10px; background: #fff; color: #000; }
+      .no-print { display: none !important; }
+      #printReport { display: block; }
+      #printReport table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      #printReport th, #printReport td { border: 1px solid #000; padding: 6px 8px; font-size: 12px; text-align: left; }
+      #printReport th { background: #eee; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      h1 { font-size: 1.25rem; overflow-wrap: anywhere; }
+      header { flex-wrap: wrap; gap: 8px; }
+      header > div:first-child { flex: 1; min-width: 0; }
+      .head-btns { flex-shrink: 0; }
+      .sub { font-size: .82rem; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .card { padding: 12px; }
+      .card .value { font-size: 1.02rem; overflow-wrap: anywhere; }
+      .panel { padding: 12px; min-width: 0; }
+      form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #desc { grid-column: 1 / -1; }
+      form button.add { grid-column: 1 / -1; padding: 14px; }
+      .form-btns { grid-template-columns: 1fr 1fr; min-width: 0; }
+      .tab { padding: 10px 4px; font-size: .78rem; }
+      .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      input, select, button { min-height: 48px; }
+      input, select, textarea { font-size: 16px; }
+      .item {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 10px;
+        padding: 12px;
+      }
+      .item .chip { grid-column: 1 / -1; justify-self: start; }
+      .item .main { grid-column: 1; min-width: 0; }
+      .item .amount { grid-column: 2; grid-row: 2; text-align: right; align-self: center; font-size: .95rem; overflow-wrap: anywhere; }
+      .item .date { grid-column: 1; grid-row: 3; align-self: center; white-space: normal; }
+      .item .actions { grid-column: 2; grid-row: 3; justify-content: flex-end; }
+      .item .desc { overflow-wrap: anywhere; }
+      .toolbar { flex-wrap: wrap; }
+      .toolbar button { flex: 1 1 100%; padding: 12px; }
+      .filters .tab { flex: 1 1 auto; padding: 8px 6px; font-size: .8rem; }
+      .date-range { flex-direction: column; }
+      .date-range input { width: 100%; }
+      .user-row { flex-wrap: wrap; }
+      .cur-user { flex-wrap: wrap; }
+      .log-item { grid-template-columns: auto minmax(0, 1fr); }
+      .log-time { grid-column: 2; text-align: left; white-space: normal; }
+      .bcv { flex-wrap: wrap; }
+      .bcv-info { flex: 1 1 100%; }
+      button.use { width: 100%; }
+      .budget-row { flex-wrap: wrap; }
+      .budget-row input { width: 100%; }
+      .conv-row { gap: 8px; }
+      .conv-field input { font-size: 1rem; }
+      .auth-card h1 { font-size: 1.4rem; }
+      .modal { padding: 12px; }
+      .modal-card { padding: 16px; max-height: 96dvh; }
+      .event-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .event-form .f-title { grid-column: 1 / -1; }
+      .event-form input, .event-form select { font-size: 16px; }
+      .cal-nav { gap: 8px; }
+      .cal-month { text-align: center; flex: 1; }
+      .cal-cell { font-size: .8rem; }
+      .event-item { flex-wrap: wrap; }
+      .event-amount { margin-left: auto; }
+    }
+    @media (max-width: 380px) {
+      .cards { grid-template-columns: 1fr; }
+      .conv-row { grid-template-columns: 1fr; }
+      .conv-arrow { text-align: center; }
+      .receipt-wrap { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de acceso -->
+  <div class="auth" id="auth">
+    <div class="auth-card">
+      <h1>Control de Gastos</h1>
+      <p class="sub">Inicia sesión para ver tus gastos</p>
+      <div class="auth-tabs no-print">
+        <button type="button" class="tab active" id="tabLogin">Iniciar sesión</button>
+        <button type="button" class="tab" id="tabRegister">Crear cuenta</button>
+      </div>
+      <form class="auth-form" id="authForm">
+        <input type="text" id="authUser" placeholder="Usuario" autocomplete="username" required>
+        <input type="password" id="authPass" placeholder="Contraseña" autocomplete="current-password" required>
+        <input type="password" id="authPass2" placeholder="Repetir contraseña" autocomplete="new-password" class="hidden">
+        <input type="text" id="authRec" placeholder="PIN de recuperación (4+ caracteres)" autocomplete="off" class="hidden">
+        <input type="password" id="authNewPass" placeholder="Nueva contraseña" autocomplete="new-password" class="hidden">
+        <input type="password" id="authNewPass2" placeholder="Repetir nueva contraseña" autocomplete="new-password" class="hidden">
+        <button type="submit" class="primary" id="authBtn">Entrar</button>
+        <div class="auth-msg" id="authMsg"></div>
+        <div class="auth-links">
+          <button type="button" class="link" id="forgotBtn">¿Olvidaste tu contraseña?</button>
+          <button type="button" class="link hidden" id="backLoginBtn">← Volver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app no-print">
+    <header>
+      <div>
+        <h1 id="title">Control de Gastos</h1>
+        <p class="sub">Lleva el registro de tus gastos en $ y en Bs (VES)</p>
+      </div>
+      <div class="head-btns">
+        <button class="theme-btn" id="settingsBtn" title="Configuración">⚙️</button>
+        <button class="theme-btn" id="themeBtn" title="Cambiar tema">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="userbar no-print">
+      <div class="cur-user">Sesión de: <b id="curUser">—</b>
+        <button type="button" class="del" id="logoutBtn" title="Cerrar sesión">Salir</button>
+      </div>
+    </div>
+
+    <div class="notif-banner" id="notifBanner"></div>
+
+    <div class="tabs no-print">
+      <button type="button" class="tab active" id="tabGastos">💸 Control de Gastos</button>
+      <button type="button" class="tab" id="tabStats">📊 Estadísticas</button>
+      <button type="button" class="tab" id="tabCalc">🧮 Calculadora</button>
+      <button type="button" class="tab" id="tabCal">📅 Calendario</button>
+      <button type="button" class="tab" id="tabLog">📋 Actividad</button>
+      <button type="button" class="tab" id="tabManual">📖 Manual</button>
+    </div>
+
+    <!-- Control de Gastos -->
+    <section class="panel hidden" id="sec-gastos">
+      <h2>💸 Control de Gastos</h2>
+
+      <div class="cards">
+        <div class="card usd"><div class="label">Total USD</div><div class="value" id="totalUsd">$0.00</div></div>
+        <div class="card ves"><div class="label">Total Bs</div><div class="value" id="totalVes">Bs 0.00</div></div>
+        <div class="card total"><div class="label">Total aprox. ($)</div><div class="value" id="totalAll">$0.00</div></div>
+        <div class="card total"><div class="label">Total aprox. (Bs)</div><div class="value" id="totalAllBs">Bs 0.00</div></div>
+      </div>
+
+      <div class="budget">
+        <div class="budget-row">
+          <label>Presupuesto mensual ($)</label>
+          <input type="number" id="budget" min="0" step="any" inputmode="decimal" placeholder="Ej: 300">
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="budgetBar"></div></div>
+        <div class="budget-label" id="budgetLabel"></div>
+      </div>
+
+      <div class="bcv">
+        <div class="bcv-info">
+          <div class="bcv-label">Dólar BCV</div>
+          <div class="bcv-rate">Cargando...</div>
+          <div class="bcv-update"></div>
+        </div>
+        <button type="button" class="use" disabled>Usar esta tasa</button>
+      </div>
+
+      <div class="filters no-print">
+        <button class="tab filter-btn active" data-filter="hoy">Hoy</button>
+        <button class="tab filter-btn" data-filter="semana">Semana</button>
+        <button class="tab filter-btn" data-filter="mes">Mes</button>
+        <button class="tab filter-btn" data-filter="custom">Personalizado</button>
+        <div class="date-range" id="dateRange">
+          <input type="date" id="from">
+          <input type="date" id="to">
+        </div>
+      </div>
+
+      <form id="form">
+        <input type="text" id="desc" placeholder="Descripción" required>
+        <input type="number" id="amount" placeholder="Monto" step="any" min="0" inputmode="decimal" required>
+        <select id="currency">
+          <option value="USD">$</option>
+          <option value="VES">Bs</option>
+        </select>
+        <select id="category"></select>
+        <input type="date" id="date">
+        <input type="text" id="comment" placeholder="Comentario (opcional)">
+        <div class="receipt-wrap no-print">
+          <label class="receipt-btn" for="receipt">📂 Cargar archivo</label>
+          <input type="file" id="receipt" accept="image/*" class="hidden">
+          <label class="receipt-btn cam" for="receiptCam">📷 Tomar foto</label>
+          <input type="file" id="receiptCam" accept="image/*" capture="environment" class="hidden">
+          <div class="receipt-name" id="receiptName"></div>
+        </div>
+        <div class="form-btns">
+          <button type="button" class="cancel hidden" id="cancelBtn">Cancelar</button>
+          <button type="submit" class="add" id="addBtn">Agregar</button>
+        </div>
+      </form>
+
+      <div class="add-cat no-print">
+        <input type="text" id="newCat" placeholder="Crear categoría propia (Ej: Educación)" maxlength="24">
+        <button type="button" class="add-cat-btn" id="addCatBtn">➕ Añadir</button>
+      </div>
+      <div class="custom-cats no-print" id="customCatList"></div>
+
+      <div class="toolbar no-print">
+        <button type="button" class="pdf" id="pdfBtn">Exportar a PDF</button>
+        <button type="button" class="export" id="exportBtn">Exportar a Excel</button>
+        <button type="button" class="backup" id="backupBtn">📦 Respaldar</button>
+        <button type="button" class="restore" id="restoreBtn">↩️ Restaurar</button>
+        <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+      </div>
+      <div class="list" id="list"></div>
+      <p class="hint">Tus datos se guardan automáticamente en este navegador.</p>
+    </section>
+
+    <!-- Estadísticas -->
+    <section class="panel hidden" id="sec-stats">
+      <h2>📊 Estadísticas</h2>
+      <p class="hint" style="text-align:left">Los totales se muestran en tu moneda de referencia (elige $ o Bs en ⚙️ Configuración) usando la tasa del día.</p>
+
+      <div class="stats-cards">
+        <div class="stat-card current"><div class="sc-label">Este mes</div><div class="sc-val" id="statCur">$0.00</div></div>
+        <div class="stat-card prev"><div class="sc-label">Mes anterior</div><div class="sc-val" id="statPrev">$0.00</div></div>
+        <div class="stat-card diff zero"><div class="sc-label">Diferencia</div><div class="sc-val" id="statDiff">$0.00</div></div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-title">Gasto por categoría (periodo activo)</div>
+        <canvas id="catChart" height="200"></canvas>
+        <div id="catLegend"></div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-title">Gasto por día (periodo activo)</div>
+        <canvas id="dayChart" height="160"></canvas>
+      </div>
+
+      <div class="m-box blueprint">
+        <h2 class="group-head" style="margin-top:0">🎁 Apoya al creador</h2>
+        <p>Esta página es gratuita y sin anuncios. Si te resulta útil, puedes hacer una <b>donación</b> para ayudarme a seguir mejorándola.</p>
+        <p>También puedes escribirme a <b>controldegastosinc@gmail.com</b> para enviarme quejas, sugerencias e ideas: tu opinión ayuda a mejorar la página. 💙</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <a class="toolbar-btn donate" href="#" id="donateMain" title="Disponible próximamente">🎁 Donar al creador</a>
+          <a class="toolbar-btn contact" href="mailto:controldegastosinc@gmail.com">📧 Contacto</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calculadora -->
+    <section class="panel hidden" id="sec-calc">
+      <h2>🧮 Calculadora</h2>
+
+      <div class="bcv">
+        <div class="bcv-info">
+          <div class="bcv-label">Dólar BCV</div>
+          <div class="bcv-rate" id="bcvRate">Cargando...</div>
+          <div class="bcv-update" id="bcvUpdate"></div>
+        </div>
+        <button type="button" class="use" id="useBcv" disabled>Usar esta tasa</button>
+      </div>
+
+      <div class="rate">
+        <label>Tasa de cambio del día (Bs por 1 $)</label>
+        <input type="number" id="rate" min="0" step="any" inputmode="decimal" placeholder="Ej: 40.50">
+      </div>
+
+      <div class="conv">
+        <div class="conv-title">Calculadora $ ⇄ Bs</div>
+        <div class="conv-row">
+          <div class="conv-field">
+            <label>Dólares ($)</label>
+            <input type="number" id="convUsd" min="0" step="any" inputmode="decimal" placeholder="0.00">
+          </div>
+          <div class="conv-arrow">⇄</div>
+          <div class="conv-field">
+            <label>Bolívares (Bs)</label>
+            <input type="number" id="convVes" min="0" step="any" inputmode="decimal" placeholder="0.00">
+          </div>
+        </div>
+        <p class="conv-note">Se actualiza al escribir. Usa la tasa de arriba o toca "Usar esta tasa" para la del BCV.</p>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-title">Historial de la tasa BCV (últimos 7 días)</div>
+        <canvas id="chart" height="260"></canvas>
+      </div>
+    </section>
+
+    <!-- Calendario -->
+    <section class="panel hidden" id="sec-cal">
+      <div class="consejo" id="tipCard">
+        <div class="tip-tag">💡 Consejo del día</div>
+        <div class="tip-title" id="tipDay"></div>
+        <div class="tip-text" id="tipText"></div>
+      </div>
+
+      <h2>📅 Calendario de pagos y fechas</h2>
+      <p class="hint">Anota fechas importantes o pagos programados. Al entrar en tu cuenta verás un recordatorio de lo que toca hoy y los próximos días.</p>
+
+      <form class="event-form" id="eventForm">
+        <input type="date" id="evDate" class="f-title" required>
+        <input type="text" id="evTitle" placeholder="Nombre (Ej: Alquiler)" class="f-title" required>
+        <input type="number" id="evAmount" placeholder="Monto (opcional)" min="0" step="any" inputmode="decimal">
+        <select id="evCurr">
+          <option value="USD">$</option>
+          <option value="VES">Bs</option>
+        </select>
+        <input type="text" id="evNote" placeholder="Nota (opcional)" class="f-title">
+        <button type="submit">Añadir a calendario</button>
+      </form>
+
+      <div class="cal-nav">
+        <button type="button" id="calPrev">‹</button>
+        <div class="cal-month" id="calMonth"></div>
+        <button type="button" id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="day-events">
+        <div class="day-title" id="dayTitle"></div>
+        <div id="dayEvents"></div>
+      </div>
+
+      <div class="upcoming">
+        <div class="upcoming-title">📌 Próximos pagos / fechas (7 días)</div>
+        <ul id="calUpcoming"></ul>
+      </div>
+
+      <div class="toolbar no-print">
+        <button type="button" class="pdf" id="icsBtn">📤 Exportar calendario (.ics)</button>
+        <button type="button" class="backup" id="importIcsBtn">🗓️ Importar (.ics)</button>
+        <input type="file" id="icsFile" accept=".ics,text/calendar" class="hidden">
+      </div>
+    </section>
+
+    <!-- Actividad -->
+    <section class="panel hidden" id="sec-log">
+      <h2>📋 Registro de Actividad</h2>
+      <div class="log" id="logList"></div>
+      <p class="hint">Aquí se registra quién agregó, editó o eliminó gastos.</p>
+    </section>
+
+    <!-- Manual -->
+    <section class="panel hidden" id="sec-manual">
+      <h2>📖 Manual de usuario</h2>
+      <p class="hint" style="text-align:left">Guía completa para entender y aprovechar la página. Toca un tema para ir directo a él.</p>
+
+      <div class="manual-toc">
+        <a href="#m-intro">1. ¿Qué es?</a>
+        <a href="#m-account">2. Tu cuenta</a>
+        <a href="#m-gastos">3. Control de Gastos</a>
+        <a href="#m-calc">4. Calculadora</a>
+        <a href="#m-cal">5. Calendario</a>
+        <a href="#m-stats">6. Estadísticas</a>
+        <a href="#m-examples">7. Ejemplos</a>
+        <a href="#m-faq">8. Preguntas frecuentes</a>
+      </div>
+
+      <div class="m-sec" id="m-intro">
+        <h3>1. ¿Qué es esta página? 🧐</h3>
+        <div class="m-box blueprint">
+          <p><b>💸 Control de Gastos</b> es una herramienta para anotar y organizar cuánto dinero gastas, en <b>dólares ($)</b> y en <b>bolívares (Bs)</b>. Con ella puedes:</p>
+          <ul>
+            <li>📝 Registrar cada gasto con fecha, categoría y comentario.</li>
+            <li>📷 Adjuntar una foto del recibo como comprobante.</li>
+            <li>🎯 Fijar metas de ahorro y seguir su avance.</li>
+            <li>📈 Ver estadísticas, comparativas y gráficos de tus gastos.</li>
+            <li>📅 Anotar pagos y fechas importantes con recordatorios.</li>
+            <li>📦 Guardar copias de seguridad de toda tu información.</li>
+            <li>🎁 Apoyar al creador o enviar sugerencias por correo.</li>
+          </ul>
+        </div>
+        <div class="m-box warnV">
+          <p><b>🔒 Importante:</b> todo se guarda <b>solo en tu navegador</b> (memoria local del dispositivo). La app no usa servidores ni internet para tus datos; si borras los datos del navegador o usas otro dispositivo, la información no viaja contigo. Por eso existe el botón <b>📦 Respaldar</b>.</p>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-account">
+        <h3>2. Tu cuenta 👤</h3>
+        <div class="m-box">
+          <h4>Crear una cuenta</h4>
+          <ol>
+            <li>En la pantalla de acceso toca <b>«Crear cuenta»</b>.</li>
+            <li>Escribe un <b>usuario</b> y una <b>contraseña</b> (mínimo 4 caracteres).</li>
+            <li>Repite la contraseña y crea un <b>PIN de recuperación</b> (mínimo 4 caracteres).</li>
+            <li>Pulsa <b>«Crear cuenta»</b> y entrarás automáticamente.</li>
+          </ol>
+        </div>
+        <div class="m-box">
+          <h4>Recuperar una contraseña olvidada</h4>
+          <p>En la pantalla de acceso toca <b>«¿Olvidaste tu contraseña?»</b>, escribe tu usuario, el <b>PIN de recuperación</b> que creaste y define una contraseña nueva.</p>
+          <div class="tipV m-box" style="margin:0;margin-top:10px">
+            <p>⚠️ El PIN es tu salvavidas: <b>guárdalo</b>. Sin él no hay forma de recuperar la cuenta, porque la app no lo guarda en ningún lugar.</p>
+          </div>
+        </div>
+        <div class="m-box">
+          <h4>Cambiar de usuario o salir</h4>
+          <p>Arriba, junto a <b>«Sesión de: [tu usuario]»</b>, está el botón <b>«Salir»</b>. Cada cuenta tiene <b>sus propios datos</b>, temas y colores.</p>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-gastos">
+        <h3>3. 💸 Control de Gastos</h3>
+        <div class="m-box">
+          <h4>¿Qué es un «gasto»?</h4>
+          <p>Un <b>gasto</b> es cualquier salida de dinero que quieras recordar. Cada gasto tiene:</p>
+          <div class="example-table">
+            <table class="example-table">
+              <tr><th>Campo</th><th>Qué significa</th><th>Ejemplo</th></tr>
+              <tr><td>Descripción</td><td>Qué compraste</td><td>Mercado semanal</td></tr>
+              <tr><td>Monto</td><td>Cuánto pagaste</td><td>45</td></tr>
+              <tr><td>Moneda</td><td>$ (dólar) o Bs (bolívar)</td><td>$</td></tr>
+              <tr><td>Categoría</td><td>Tipo de gasto (con icono y color)</td><td>🍔 Comida</td></tr>
+              <tr><td>Fecha</td><td>Cuándo ocurrió</td><td>04/08/2026</td></tr>
+              <tr><td>Comentario</td><td>Nota opcional</td><td>Con amigos</td></tr>
+              <tr><td>Recibo</td><td>Foto del comprobante (opcional)</td><td>📷</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="m-box">
+          <h4>Cómo se ve el formulario lleno</h4>
+          <div class="mock-form">
+            <div class="mf full"><b>Descripción:</b> Mercado semanal</div>
+            <div class="mf"><b>Monto:</b> 45</div>
+            <div class="mf"><b>Moneda:</b> $</div>
+            <div class="mf"><b>Categoría:</b> 🍔 Comida</div>
+            <div class="mf"><b>Fecha:</b> 04/08/2026</div>
+            <div class="mf full"><b>Comentario:</b> Compra con amigos</div>
+          </div>
+        </div>
+        <div class="m-box">
+          <h4>Pasos para registrar un gasto</h4>
+          <ol>
+            <li>Escribe la <b>descripción</b> (obligatorio).</li>
+            <li>Escribe el <b>monto</b> y elige <b>$</b> o <b>Bs</b>.</li>
+            <li>Elige la <b>categoría</b> (puedes crear las tuyas abajo del formulario).</li>
+            <li>Ajusta la <b>fecha</b> si no es hoy.</li>
+            <li>(Opcional) Adjunta <b>📂 archivo</b> o <b>📷 foto</b> del recibo.</li>
+            <li>Pulsa <b>«Agregar»</b>. ✅</li>
+          </ol>
+        </div>
+        <div class="m-box">
+          <h4>Categorías y presupuesto</h4>
+          <p><b>🏷️ Categorías propias:</b> en el campo «Crear categoría propia» escribes el nombre y tocas <b>➕ Añadir</b>. Se eliminan con el botón ✖️.</p>
+          <p><b>🎯 Presupuesto mensual:</b> en «Presupuesto mensual ($)» escribes cuánto piensas gastar al mes. La barra te avisa en verde (bien), naranja (cerca del límite) y rojo (excedido).</p>
+        </div>
+        <div class="m-box">
+          <h4>Exportar</h4>
+          <p><b>Exportar a Excel</b> descarga tus gastos filtrados en un archivo de Excel. <b>Exportar a PDF</b> abre una vista para imprimir/guardar en PDF. <b>📦 Respaldar</b> guarda <u>todo</u> en un archivo JSON; <b>↩️ Restaurar</b> lo vuelve a cargar.</p>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-calc">
+        <h3>4. 🧮 Calculadora</h3>
+        <div class="m-box">
+          <h4>Tasa de cambio (Bs por 1 $)</h4>
+          <p>Es cuántos bolívares vale <b>1 dólar</b>. Ejemplo: si la tasa es <b>40,50</b>, entonces 1 $ = Bs 40,50.</p>
+          <p>La app intenta traer el <b>dólar BCV oficial</b> automáticamente. El botón <b>«Usar esta tasa»</b> la copia al campo de la tasa del día.</p>
+        </div>
+        <div class="m-box">
+          <h4>Convertir $ ⇄ Bs</h4>
+          <ul>
+            <li>Escribe dólares en <b>Dólares ($)</b> → ves el equivalente en bolívares.</li>
+            <li>Escribe bolívares en <b>Bolívares (Bs)</b> → ves el equivalente en dólares.</li>
+          </ul>
+          <div class="okV m-box" style="margin:0;margin-top:10px">
+            <p><b>Ejemplo con tasa 40:</b> si escribes <b>100</b> en Dólares, verás <b>Bs 4000,00</b>. Si escribes <b>4000</b> en Bolívares, verás <b>$100,00</b>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-cal">
+        <h3>5. 📅 Calendario</h3>
+        <div class="m-box">
+          <p>Sirve para anotar <b>pagos y fechas importantes</b> (alquiler, facturas, cumpleaños). Cada fecha puede llevar nombre, monto, moneda y nota.</p>
+          <ol>
+            <li>Elige la <b>fecha</b>, el <b>nombre</b> y (opcional) el <b>monto</b>.</li>
+            <li>Pulsa <b>«Añadir a calendario»</b>.</li>
+            <li>El día aparece marcado con un <b>punto rojo</b> 🔴.</li>
+            <li>En <b>«Próximos pagos (7 días)»</b> ves lo que se acerca.</li>
+          </ol>
+        </div>
+        <div class="m-box">
+          <h4>🔔 Recordatorios y notificaciones</h4>
+          <p>Al entrar, la app te muestra un aviso con lo que <b>vence hoy</b> y los <b>próximos 7 días</b>. Puedes activar <b>notificaciones del sistema</b> con el botón 🔔 para recibir el aviso aunque estés en otra página.</p>
+          <div class="tipV m-box" style="margin:0;margin-top:10px">
+            <p>💡 Consejo: usa la app para no olvidar pagos que tienen <b>recargos por retraso</b>, como servicios de la casa.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-stats">
+        <h3>6. 📊 Estadísticas</h3>
+        <div class="m-box">
+          <h4>Comparativa mensual</h4>
+          <p>Muestra cuánto gastaste <b>este mes</b>, <b>el mes anterior</b> y la <b>diferencia</b>. Verde = gastaste menos que el mes pasado. Rojo = gastaste más.</p>
+        </div>
+        <div class="m-box">
+          <h4>Gráficos</h4>
+          <ul>
+            <li><b>🍩 Gasto por categoría:</b> qué categoría te consume más dinero (pastel + leyenda con %).</li>
+            <li><b>📈 Gasto por día:</b> cómo cambia tu gasto día a día.</li>
+          </ul>
+          <p class="m-desc">Los gráficos usan el <b>periodo activo</b> de la pestaña de gastos (Hoy / Semana / Mes / Personalizado).</p>
+        </div>
+        <div class="m-box">
+          <h4>🎁 Donaciones y contacto</h4>
+          <p>Esta página es gratuita y sin anuncios. En la parte inferior de Estadísticas encontrarás el botón <b>«🎁 Donar al creador»</b> para apoyar económicamente si lo deseas.</p>
+          <p>¿Tienes quejas, sugerencias o ideas? Escríbeme a <b>controldegastosinc@gmail.com</b>: leo todos los mensajes y con tu opinión la página sigue mejorando. 💙</p>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-examples">
+        <h3>7. Ejemplos prácticos 🧪</h3>
+        <div class="m-box">
+          <h4>Ejemplo A: anotar la compra del mercado</h4>
+          <table class="example-table">
+            <tr><th>Paso</th><th>Qué haces</th><th>Qué pasa</th></tr>
+            <tr><td>1</td><td>Escribes «Mercado» y monto 45 en $</td><td>Aparece en la lista con 🍔 Comida</td></tr>
+            <tr><td>2</td><td>Total USD arriba</td><td>Sube a $45.00</td></tr>
+            <tr><td>3</td><td>Vas a 📊 Estadísticas</td><td>Ves el pastel con Comida al 100%</td></tr>
+          </table>
+        </div>
+        <div class="m-box">
+          <h4>Ejemplo B: convertir una compra en Bs a dólares</h4>
+          <p>Pagaste <b>Bs 8000</b> en una tienda. En la 🧮 Calculadora, escribes 8000 en «Bolívares». Con tasa <b>40</b> verás <b>$200,00</b>: así sabes cuánto fue en dólares para tu presupuesto.</p>
+        </div>
+        <div class="m-box">
+          <h4>Ejemplo C: planificar el alquiler</h4>
+          <p>El día 5 del mes pagas <b>$250</b> de alquiler. Lo anotas en el 📅 Calendario con fecha 05, monto 250 y moneda $. Al entrar esos días, la app te recuerda: <b>«HOY: Alquiler · $250»</b>.</p>
+        </div>
+      </div>
+
+      <div class="m-sec" id="m-faq">
+        <h3>8. Preguntas frecuentes ❓</h3>
+        <div class="m-box">
+          <h4>¿Por qué se pierden mis datos si cambio de teléfono o navegador?</h4>
+          <p>Porque todo se guarda en el <b>navegador</b>, no en internet. Usa <b>📦 Respaldar</b> para guardar un archivo y <b>↩️ Restaurar</b> en el otro dispositivo.</p>
+        </div>
+        <div class="m-box">
+          <h4>¿Necesito internet para usarla?</h4>
+          <p>No, excepto el <b>dólar BCV</b> y las <b>fuentes</b> de letra, que se cargan desde internet. Si no hay conexión, el resto funciona y puedes poner la tasa a mano.</p>
+        </div>
+        <div class="m-box">
+          <h4>¿La tasa BCV es oficial?</h4>
+          <p>Se toma del servicio público <b>ve.dolarapi.com</b>, que refleja el dólar BCV oficial. Es orientativa; siempre puedes escribir tu propia tasa.</p>
+        </div>
+        <div class="m-box">
+          <h4>¿Puedo ver mi foto de recibo?</h4>
+          <p>Sí: toca la <b>miniatura</b> 📷 del gasto y se abre en grande. También puedes adjuntar la foto desde la <b>cámara del teléfono</b> con el botón «📷 Tomar foto».</p>
+        </div>
+        <div class="m-box blueprint">
+          <h4>🤝 ¿Cómo comparto una cuenta con mi pareja o socio?</h4>
+          <p>Si usan el <b>mismo dispositivo</b>, pueden registrarse con <b>el mismo usuario y contraseña</b>: los dos, al entrar, ven y agregan los mismos gastos, y la sección <b>📋 Actividad</b> guarda <b>quién</b> agregó, editó o eliminó cada movimiento (todas las cuentas tienen sus datos separados).</p>
+          <p class="m-desc">Nota: en esta versión <b>sin servidor</b> (todo vive en tu navegador) no es posible la sincronización «en tiempo real» entre dispositivos distintos a la vez. Para eso se necesita un backend en internet (cuesta y requiere mantenimiento). Mientras tanto, la alternativa es compartir el mismo aparato o usar <b>📦 Respaldar/Restaurar</b> para mover los datos.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer no-print">
+      <h4>ℹ️ Referencias y avisos</h4>
+      <div class="ref-links">
+        <span>💱 Tasa de cambio Dólar BCV: <a href="https://ve.dolarapi.com/v1/dolares/oficial" target="_blank" rel="noopener">ve.dolarapi.com/v1/dolares/oficial</a> · Histórico: <a href="https://ve.dolarapi.com/v1/historicos/dolares/oficial" target="_blank" rel="noopener">ve.dolarapi.com/v1/historicos/dolares/oficial</a></span>
+        <span>🔤 Tipografías: Google Fonts (<a href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com</a>) — Lexend, Outfit, Poppins, Inter, Montserrat, Space Grotesk, DM Sans, Playfair Display.</span>
+        <span>🔒 Privacidad: la página funciona 100 % en tu navegador. Tus datos (gastos, cuentas, fotos) se guardan solo en tu dispositivo y <b>no se envían a ningún servidor</b>.</span>
+        <span>💡 La información y consejos financieros de esta página son orientativos y no constituyen asesoría financiera profesional.</span>
+        <span>📄 Consejos financieros inspirados en buenas prácticas de finanzas personales (regla 50/30/20, método avalancha, fondo de emergencia).</span>
+        <span>📧 Para quejas, sugerencias e ideas: <a href="mailto:controldegastosinc@gmail.com">controldegastosinc@gmail.com</a>.</span>
+      </div>
+      <p>Hecho con ❤️ para llevar el control de tus gastos. Todos los datos pertenecen al usuario.</p>
+      <p>🙏 Si te gusta la página, considera una <b><a href="#" id="donateFooter" title="Disponible próximamente">donación</a></b>.</p>
+    </footer>
+  </div>
+
+  <div id="printReport"></div>
+
+  <!-- Configuración -->
+  <div class="modal no-print" id="settingsModal">
+    <div class="modal-card">
+      <h2>Configuración</h2>
+
+      <div class="setting">
+        <span class="s-label">Tema</span>
+        <div class="mode-opts">
+          <button type="button" class="mode-opt" data-mode="dark">🌙 Oscuro</button>
+          <button type="button" class="mode-opt" data-mode="light">☀️ Claro</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="s-label">Moneda de referencia principal</span>
+        <div class="mode-opts" id="curOpts">
+          <button type="button" class="mode-opt" data-cur="USD">$ Dólar</button>
+          <button type="button" class="mode-opt" data-cur="VES">Bs Bolívar</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <span class="s-label">Color de acento</span>
+        <div class="swatches" id="swatches"></div>
+      </div>
+
+      <div class="setting">
+        <span class="s-label">Tipografía</span>
+        <div class="font-opts" id="fontOpts"></div>
+      </div>
+
+      <div class="modal-btns">
+        <button type="button" class="close" id="closeSettings">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visor de recibos -->
+  <div class="lightbox" id="lightbox"><img id="lbImg" alt="Recibo"></div>
+
+  <script>
+    // ===== Categorías =====
+    const CATS = [
+      { id: 'comida', label: 'Comida', icon: '🍔', color: '#22c55e' },
+      { id: 'transporte', label: 'Transporte', icon: '🚌', color: '#38bdf8' },
+      { id: 'servicios', label: 'Servicios', icon: '💡', color: '#f59e0b' },
+      { id: 'ocio', label: 'Entretenimiento', icon: '🎮', color: '#a78bfa' },
+      { id: 'salud', label: 'Salud', icon: '💊', color: '#ef4444' },
+      { id: 'otros', label: 'Otros', icon: '📦', color: '#94a3b8' }
+    ];
+
+    // ===== Estado =====
+    const STORAGE = 'gastos_expenses';
+    const RATE_STORAGE = 'gastos_rate';
+    const THEME_STORAGE = 'gastos_theme';
+    const BUDGET_STORAGE = 'gastos_budget';
+    const LOG_STORAGE = 'gastos_log';
+    const EVENTS_STORAGE = 'gastos_events';
+    const NOTIFY_STORAGE = 'gastos_notify_';
+
+    let expenses = JSON.parse(localStorage.getItem(STORAGE) || '[]');
+    let currentUser = '';
+    let dataScope = 'shared';
+    let log = JSON.parse(localStorage.getItem(LOG_STORAGE) || '[]');
+    let events = JSON.parse(localStorage.getItem(EVENTS_STORAGE) || '[]');
+    let filter = 'hoy';
+    let editingId = null;
+    let pendingReceipt = null;
+
+    function keyFor(base) { return base + '_u_' + dataScope; }
+    function loadScope(name) {
+      dataScope = name || 'shared';
+      expenses = JSON.parse(localStorage.getItem(keyFor(STORAGE)) || '[]');
+      log = JSON.parse(localStorage.getItem(keyFor(LOG_STORAGE)) || '[]');
+      events = JSON.parse(localStorage.getItem(keyFor(EVENTS_STORAGE)) || '[]');
+      customCats = JSON.parse(localStorage.getItem(keyFor(CUSTOM_CATS_STORAGE)) || '[]');
+    }
+
+    const rateEl = document.getElementById('rate');
+    const form = document.getElementById('form');
+    const listEl = document.getElementById('list');
+    const budgetEl = document.getElementById('budget');
+
+    const savedRate = localStorage.getItem(RATE_STORAGE);
+    if (savedRate) rateEl.value = savedRate;
+    const savedBudget = localStorage.getItem(BUDGET_STORAGE);
+    if (savedBudget) budgetEl.value = savedBudget;
+
+    // ===== Categorías en select =====
+    const catSel = document.getElementById('category');
+    const CUSTOM_CATS_STORAGE = 'gastos_custom_cats';
+    const CAT_COLORS = ['#22c55e', '#38bdf8', '#f59e0b', '#a78bfa', '#ef4444', '#94a3b8', '#3b82f6', '#ec4899'];
+    let customCats = [];
+    try { customCats = JSON.parse(localStorage.getItem(CUSTOM_CATS_STORAGE) || '[]'); } catch (e) { customCats = []; }
+
+    function getAllCats() { return CATS.concat(customCats); }
+    function saveCustomCats() { localStorage.setItem(keyFor(CUSTOM_CATS_STORAGE), JSON.stringify(customCats)); }
+
+    function populateCats(selected) {
+      catSel.innerHTML = '';
+      getAllCats().forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.icon + ' ' + c.label;
+        catSel.appendChild(opt);
+      });
+      if (selected) catSel.value = selected;
+    }
+
+    function renderCustomCatList() {
+      const el = document.getElementById('customCatList');
+      if (!customCats.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div class="cc-title">Tus categorías</div>' +
+        customCats.map(c =>
+          '<div class="custom-cat-row">' +
+          '<span class="cc-ic">' + c.icon + '</span>' +
+          '<span class="cc-name">' + escapeHtml(c.label) + '</span>' +
+          '<button type="button" class="del" data-cat="' + c.id + '" title="Eliminar">&times;</button>' +
+          '</div>'
+        ).join('');
+      el.querySelectorAll('.del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          customCats = customCats.filter(c => c.id !== btn.dataset.cat);
+          saveCustomCats();
+          populateCats();
+          renderCustomCatList();
+          render();
+        });
+      });
+    }
+
+    function addCustomCat(label) {
+      label = label.trim();
+      if (!label) return;
+      if (getAllCats().some(c => c.label.toLowerCase() === label.toLowerCase())) {
+        alert('Esa categoría ya existe.');
+        return;
+      }
+      const id = 'cat_' + Date.now();
+      customCats.push({ id, label, icon: '🏷️', color: CAT_COLORS[customCats.length % CAT_COLORS.length] });
+      saveCustomCats();
+      populateCats(id);
+      renderCustomCatList();
+    }
+
+    document.getElementById('addCatBtn').addEventListener('click', () => {
+      const input = document.getElementById('newCat');
+      addCustomCat(input.value);
+      input.value = '';
+      input.focus();
+    });
+    document.getElementById('newCat').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addCatBtn').click(); }
+    });
+
+    populateCats();
+    renderCustomCatList();
+
+    // ===== Preferencias por usuario =====
+    const PREFS_BASE = 'gastos_prefs_';
+    const FONTS = [
+      ['Lexend', "'Lexend'"],
+      ['Outfit', "'Outfit'"],
+      ['Poppins', "'Poppins'"],
+      ['Inter', "'Inter'"],
+      ['Montserrat', "'Montserrat'"],
+      ['Space Grotesk', "'Space Grotesk'"],
+      ['DM Sans', "'DM Sans'"],
+      ['Playfair Display', "'Playfair Display'"]
+    ];
+    const SWATCHES = ['#38bdf8', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6'];
+    const defaultPrefs = { theme: 'dark', accent: '#38bdf8', font: 'Lexend', currency: 'USD' };
+    let prefs = Object.assign({}, defaultPrefs);
+
+    function loadPrefs(user) {
+      try {
+        const p = JSON.parse(localStorage.getItem(PREFS_BASE + user));
+        if (p && p.font) return Object.assign({}, defaultPrefs, p);
+      } catch (e) { /* usar predeterminados */ }
+      return Object.assign({}, defaultPrefs);
+    }
+    function savePrefs() {
+      if (currentUser) localStorage.setItem(PREFS_BASE + currentUser, JSON.stringify(prefs));
+    }
+    function applyPrefs() {
+      document.documentElement.dataset.theme = prefs.theme;
+      document.documentElement.style.setProperty('--accent', prefs.accent);
+      document.body.style.fontFamily = "'" + prefs.font + "', system-ui, sans-serif";
+      themeIcon.textContent = prefs.theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    themeBtn.addEventListener('click', () => {
+      prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark';
+      savePrefs();
+      applyPrefs();
+      renderChart();
+      syncSettingsUI();
+    });
+    applyPrefs();
+
+    // ===== Panel de configuración =====
+    const settingsModal = document.getElementById('settingsModal');
+    const swatchesEl = document.getElementById('swatches');
+    const fontOptsEl = document.getElementById('fontOpts');
+
+    function buildSettingsUI() {
+      swatchesEl.innerHTML = '';
+      SWATCHES.forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'swatch';
+        b.style.background = c;
+        b.dataset.color = c;
+        b.addEventListener('click', () => { prefs.accent = c; savePrefs(); applyPrefs(); syncSettingsUI(); });
+        swatchesEl.appendChild(b);
+      });
+      fontOptsEl.innerHTML = '';
+      FONTS.forEach(([label, css]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'font-opt';
+        b.textContent = label;
+        b.dataset.font = label;
+        b.style.fontFamily = css;
+        b.addEventListener('click', () => { prefs.font = label; savePrefs(); applyPrefs(); syncSettingsUI(); });
+        fontOptsEl.appendChild(b);
+      });
+      syncSettingsUI();
+    }
+    function syncSettingsUI() {
+      document.querySelectorAll('.mode-opt').forEach(m => m.classList.toggle('sel', m.dataset.mode === prefs.theme));
+      document.querySelectorAll('#curOpts .mode-opt').forEach(c => c.classList.toggle('sel', c.dataset.cur === prefs.currency));
+      document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('sel', s.dataset.color === prefs.accent));
+      document.querySelectorAll('.font-opt').forEach(f => f.classList.toggle('sel', f.dataset.font === prefs.font));
+    }
+    document.querySelectorAll('.mode-opt').forEach(m => {
+      m.addEventListener('click', () => {
+        prefs.theme = m.dataset.mode;
+        savePrefs();
+        applyPrefs();
+        renderChart();
+        syncSettingsUI();
+      });
+    });
+    document.querySelectorAll('#curOpts .mode-opt').forEach(c => {
+      c.addEventListener('click', () => {
+        prefs.currency = c.dataset.cur;
+        savePrefs();
+        render();
+        syncSettingsUI();
+      });
+    });
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+      buildSettingsUI();
+      settingsModal.classList.add('show');
+    });
+    document.getElementById('closeSettings').addEventListener('click', () => settingsModal.classList.remove('show'));
+
+    document.getElementById('lightbox').addEventListener('click', () => {
+      document.getElementById('lightbox').classList.remove('show');
+      document.getElementById('lbImg').src = '';
+    });
+
+    function showDonateNote() {
+      alert('🙏 ¡Gracias por tu interés! La opción de donación en línea estará disponible próximamente. Mientras tanto, puedes apoyarme enviándome tus ideas y sugerencias a controldegastosinc@gmail.com. 💙');
+    }
+    document.getElementById('donateMain').addEventListener('click', (e) => { e.preventDefault(); showDonateNote(); });
+    document.getElementById('donateFooter').addEventListener('click', (e) => { e.preventDefault(); showDonateNote(); });
+
+    // ===== Cuentas y autenticación =====
+    const AUTH_ACCOUNTS = 'gastos_accounts';
+    const AUTH_SESSION = 'gastos_session';
+    let accounts = JSON.parse(localStorage.getItem(AUTH_ACCOUNTS) || '[]');
+
+    function randSalt() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+    async function hashPassword(salt, pass) {
+      const str = salt + ':' + pass;
+      try {
+        if (window.crypto && crypto.subtle) {
+          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+          return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) { /* usar fallback */ }
+      let h1 = 5381, h2 = 52711;
+      for (let i = 0; i < str.length; i++) {
+        const c = str.charCodeAt(i);
+        h1 = (h1 * 33) ^ c;
+        h2 = (h2 * 31) ^ c;
+      }
+      return 'h' + (h1 >>> 0).toString(16) + (h2 >>> 0).toString(16);
+    }
+    function accountByName(name) {
+      const n = String(name).trim().toLowerCase();
+      return accounts.find(a => a.name.toLowerCase() === n) || null;
+    }
+    async function tryLogin(name, pass) {
+      const acc = accountByName(name);
+      if (!acc) return false;
+      const h = await hashPassword(acc.salt, pass);
+      return h === acc.hash;
+    }
+
+    const authScreen = document.getElementById('auth');
+    const authForm = document.getElementById('authForm');
+    const authUser = document.getElementById('authUser');
+    const authPass = document.getElementById('authPass');
+    const authPass2 = document.getElementById('authPass2');
+    const authRec = document.getElementById('authRec');
+    const authNewPass = document.getElementById('authNewPass');
+    const authNewPass2 = document.getElementById('authNewPass2');
+    const authBtn = document.getElementById('authBtn');
+    const authMsg = document.getElementById('authMsg');
+    const curUserEl = document.getElementById('curUser');
+    let authMode = 'login';
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+      document.querySelector('.auth-tabs').classList.toggle('hidden', mode === 'recover');
+      authPass.classList.toggle('hidden', mode === 'recover');
+      authPass2.classList.toggle('hidden', mode !== 'register');
+      authRec.classList.toggle('hidden', mode === 'login');
+      authNewPass.classList.toggle('hidden', mode !== 'recover');
+      authNewPass2.classList.toggle('hidden', mode !== 'recover');
+      document.getElementById('forgotBtn').classList.toggle('hidden', mode === 'recover');
+      document.getElementById('backLoginBtn').classList.toggle('hidden', mode !== 'recover');
+      authBtn.textContent = mode === 'login' ? 'Entrar' : (mode === 'register' ? 'Crear cuenta' : 'Restablecer contraseña');
+      authMsg.classList.remove('auth-ok');
+      authMsg.textContent = '';
+      authForm.reset();
+    }
+    document.getElementById('tabLogin').addEventListener('click', () => setAuthMode('login'));
+    document.getElementById('tabRegister').addEventListener('click', () => setAuthMode('register'));
+    document.getElementById('forgotBtn').addEventListener('click', () => setAuthMode('recover'));
+    document.getElementById('backLoginBtn').addEventListener('click', () => setAuthMode('login'));
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = authUser.value.trim();
+      const pass = authPass.value;
+      authMsg.textContent = '';
+      if (!name) { authMsg.textContent = 'Ingresa tu usuario.'; return; }
+
+      if (authMode === 'recover') {
+        const pin = authRec.value.trim();
+        const np = authNewPass.value;
+        const np2 = authNewPass2.value;
+        if (!pin) { authMsg.textContent = 'Ingresa tu PIN de recuperación.'; return; }
+        if (np.length < 4) { authMsg.textContent = 'La nueva contraseña debe tener al menos 4 caracteres.'; return; }
+        if (np !== np2) { authMsg.textContent = 'Las nuevas contraseñas no coinciden.'; return; }
+        const acc = accountByName(name);
+        if (!acc) { authMsg.textContent = 'Ese usuario no existe.'; return; }
+        const ph = await hashPassword(acc.salt, pin);
+        if (ph !== acc.pinHash) { authMsg.textContent = 'El PIN de recuperación es incorrecto.'; return; }
+        const salt = randSalt();
+        acc.salt = salt;
+        acc.hash = await hashPassword(salt, np);
+        localStorage.setItem(AUTH_ACCOUNTS, JSON.stringify(accounts));
+        setAuthMode('login');
+        authMsg.classList.add('auth-ok');
+        authMsg.textContent = 'Contraseña restablecida. Ya puedes iniciar sesión.';
+        return;
+      }
+
+      if (!pass) { authMsg.textContent = 'Ingresa tu contraseña.'; return; }
+      if (authMode === 'register') {
+        if (pass.length < 4) { authMsg.textContent = 'La contraseña debe tener al menos 4 caracteres.'; return; }
+        if (pass !== authPass2.value) { authMsg.textContent = 'Las contraseñas no coinciden.'; return; }
+        const pin = authRec.value.trim();
+        if (pin.length < 4) { authMsg.textContent = 'Crea un PIN de recuperación de al menos 4 caracteres.'; return; }
+        if (accountByName(name)) { authMsg.textContent = 'Ese usuario ya existe.'; return; }
+        const salt = randSalt();
+        const hash = await hashPassword(salt, pass);
+        const pinHash = await hashPassword(salt, pin);
+        accounts.push({ name: name.trim(), salt, hash, pinHash });
+        localStorage.setItem(AUTH_ACCOUNTS, JSON.stringify(accounts));
+        enterApp(name.trim());
+      } else {
+        if (await tryLogin(name, pass)) {
+          enterApp(accountByName(name).name);
+        } else {
+          authMsg.textContent = 'Usuario o contraseña incorrectos.';
+        }
+      }
+    });
+
+    function enterApp(name) {
+      localStorage.setItem(AUTH_SESSION, name);
+      currentUser = name;
+      loadScope(name);
+      prefs = loadPrefs(name);
+      applyPrefs();
+      authScreen.classList.add('hidden');
+      curUserEl.textContent = name;
+      show('gastos');
+      render();
+      showReminders();
+      notifyReminders();
+    }
+    function exitApp() {
+      localStorage.removeItem(AUTH_SESSION);
+      currentUser = '';
+      loadScope('');
+      authScreen.classList.remove('hidden');
+      prefs = Object.assign({}, defaultPrefs);
+      applyPrefs();
+      setAuthMode('login');
+    }
+    document.getElementById('logoutBtn').addEventListener('click', exitApp);
+
+    // ===== Registro de actividad =====
+    function addLog(type, text) {
+      log.unshift({ id: Date.now(), type, user: currentUser || 'Invitado', text, date: new Date().getTime() });
+      if (log.length > 300) log = log.slice(0, 300);
+      localStorage.setItem(keyFor(LOG_STORAGE), JSON.stringify(log));
+    }
+    const logKind = { add: ['➕', 'agregó'], edit: ['✏️', 'editó'], delete: ['🗑️', 'eliminó'] };
+    function renderLog() {
+      const el = document.getElementById('logList');
+      if (!log.length) {
+        el.innerHTML = '<div class="empty">Aún no hay actividad registrada.</div>';
+        return;
+      }
+      el.innerHTML = log.map(l => {
+        const [ic, verb] = logKind[l.type] || ['•', 'registró'];
+        const d = new Date(l.date);
+        const time = d.toLocaleDateString('es-VE') + ' ' + d.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+        return '<div class="log-item">' +
+          '<div class="log-ic">' + ic + '</div>' +
+          '<div class="log-main"><div class="log-user">' + escapeHtml(l.user) + '</div>' +
+          '<div class="log-text">' + escapeHtml(verb) + ': ' + escapeHtml(l.text) + '</div></div>' +
+          '<div class="log-time">' + time + '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // ===== Pestañas =====
+    const tabGastos = document.getElementById('tabGastos');
+    const tabCalc = document.getElementById('tabCalc');
+    const tabCal = document.getElementById('tabCal');
+    const tabLog = document.getElementById('tabLog');
+    const tabStats = document.getElementById('tabStats');
+    const tabManual = document.getElementById('tabManual');
+    const secGastos = document.getElementById('sec-gastos');
+    const secCalc = document.getElementById('sec-calc');
+    const secCal = document.getElementById('sec-cal');
+    const secLog = document.getElementById('sec-log');
+    const secStats = document.getElementById('sec-stats');
+    const secManual = document.getElementById('sec-manual');
+    const titleEl = document.getElementById('title');
+    const showTitles = { gastos: '💸 Control de Gastos', stats: '📊 Estadísticas', calc: '🧮 Calculadora Bs y $', cal: '📅 Calendario', log: '📋 Actividad', manual: '📖 Manual de usuario' };
+    function show(which) {
+      secGastos.classList.toggle('hidden', which !== 'gastos');
+      secCalc.classList.toggle('hidden', which !== 'calc');
+      secCal.classList.toggle('hidden', which !== 'cal');
+      secLog.classList.toggle('hidden', which !== 'log');
+      secStats.classList.toggle('hidden', which !== 'stats');
+      secManual.classList.toggle('hidden', which !== 'manual');
+      tabGastos.classList.toggle('active', which === 'gastos');
+      tabCalc.classList.toggle('active', which === 'calc');
+      tabCal.classList.toggle('active', which === 'cal');
+      tabLog.classList.toggle('active', which === 'log');
+      tabStats.classList.toggle('active', which === 'stats');
+      tabManual.classList.toggle('active', which === 'manual');
+      titleEl.textContent = showTitles[which];
+      if (which === 'calc') renderChart();
+      if (which === 'log') renderLog();
+      if (which === 'stats') renderStats();
+    }
+    tabGastos.addEventListener('click', () => show('gastos'));
+    tabStats.addEventListener('click', () => show('stats'));
+    tabCalc.addEventListener('click', () => show('calc'));
+    tabCal.addEventListener('click', () => { show('cal'); renderCalendar(); });
+    tabLog.addEventListener('click', () => show('log'));
+    tabManual.addEventListener('click', () => show('manual'));
+    show('gastos');
+
+    // ===== Calendario, recordatorios y consejo del día =====
+    const TIPS = [
+      { title: 'Ahorra primero, gasta después', text: 'Antes de gastar, aparta al menos un 10 % de lo que recibes. Ese pequeño hábito crea tu fondo de emergencia.' },
+      { title: 'La regla 50/30/20', text: 'Destina 50 % a necesidades, 30 % a deseos y 20 % a ahorro o deudas. Así sabes si tu presupuesto está equilibrado.' },
+      { title: 'Paga las deudas con interés alto primero', text: 'El método avalancha: ordena tus deudas por tasa de interés y paga la más cara antes. Ahorrarás dinero en intereses.' },
+      { title: 'Revisa tus gastos pequeños', text: 'Ese café o delivery diario suma más de lo que crees. Anótalos: es fácil ver el total al final del mes.' },
+      { title: 'Compara precios antes de comprar', text: 'Con la inflación, un producto puede costar distinto en cada negocio. Comprar en $ o Bs también cambia el resultado: siempre compara.' },
+      { title: 'Un día sin gastar', text: 'Prueba un "día sin gastos" a la semana. Te ayuda a separar lo que necesitas de lo que solo es impulso.' },
+      { title: 'Separa tus cuentas', text: 'Ten un dinero separado para gastos del hogar, otro para ahorro y otro para imprevistos. Así el presupuesto no se mezcla.' },
+      { title: 'Revisa tus suscripciones', text: 'Servicios de streaming o aplicaciones que ya no usas son gastos invisibles. Revisa cada mes y cancela los innecesarios.' },
+      { title: 'Compra con lista', text: 'Ir al mercado sin lista es una invitación a gastar de más. Planifica tus compras y respeta lo anotado.' },
+      { title: 'El costo de no planificar', text: 'Los gastos de la casa que se pagan con retraso cuestan más. Usa el calendario para marcar tus pagos y evita recargos.' },
+      { title: 'Metas de ahorro realistas', text: 'Fija una meta clara y medible, como ahorrar $50 al mes. Ver tu progreso te motiva a mantener el hábito.' },
+      { title: 'Invierte en tu educación', text: 'El mejor gasto es aprender algo nuevo que aumente tus ingresos. Una habilidad vale más que cualquier objeto.' }
+    ];
+    function renderTip() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const day = Math.floor((now.getTime() - start.getTime()) / 86400000);
+      const t = TIPS[day % TIPS.length];
+      document.getElementById('tipDay').textContent = t.title;
+      document.getElementById('tipText').textContent = t.text;
+    }
+    renderTip();
+
+    function dateKey(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function parseKey(s) {
+      const p = s.split('-');
+      return new Date(+p[0], +p[1] - 1, +p[2]);
+    }
+    function todayKey() { return dateKey(new Date()); }
+    function fmtMoney(a, c) { return c === 'VES' ? 'Bs ' + Number(a).toFixed(2) : '$' + Number(a).toFixed(2); }
+    function evItem(e) {
+      return '<div class="event-item" data-id="' + e.id + '">' +
+        '<div class="event-main"><div class="e-title">' + escapeHtml(e.title) + '</div>' +
+        (e.note ? '<div class="e-note">' + escapeHtml(e.note) + '</div>' : '') + '</div>' +
+        (e.amount ? '<div class="event-amount">' + fmtMoney(e.amount, e.currency) + '</div>' : '') +
+        '<button type="button" class="del ev-del" title="Eliminar">🗑️</button></div>';
+    }
+    function wireDel() {
+      document.querySelectorAll('.ev-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = Number(btn.closest('.event-item').dataset.id);
+          events = events.filter(e => e.id !== id);
+          localStorage.setItem(keyFor(EVENTS_STORAGE), JSON.stringify(events));
+          renderCalendar();
+          showReminders();
+        });
+      });
+    }
+    function renderCalendar() {
+      const now = new Date();
+      if (calYear === undefined) { calYear = now.getFullYear(); calMonth = now.getMonth(); }
+      const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+      document.getElementById('calMonth').textContent = cap(new Date(calYear, calMonth, 1).toLocaleDateString('es-VE', { month: 'long', year: 'numeric' }));
+      const firstDow = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const hasMap = {};
+      events.forEach(e => hasMap[e.date] = true);
+      const dows = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
+      let html = dows.map(d => '<div class="cal-dow">' + d + '</div>').join('');
+      for (let i = 0; i < firstDow; i++) html += '<div class="cal-cell empty"></div>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = dateKey(new Date(calYear, calMonth, d));
+        const cls = ['cal-cell', key === todayKey() ? 'today' : '', key === calSel ? 'sel' : '', hasMap[key] ? 'has' : ''].join(' ').trim();
+        html += '<div class="' + cls + '" data-k="' + key + '">' + d + (hasMap[key] ? '<span class="dot"></span>' : '') + '</div>';
+      }
+      document.getElementById('calGrid').innerHTML = html;
+      document.getElementById('calGrid').querySelectorAll('.cal-cell:not(.empty)').forEach(cell => {
+        cell.addEventListener('click', () => { calSel = cell.dataset.k; renderCalendar(); renderDayEvents(); });
+      });
+      renderDayEvents();
+      renderUpcoming();
+    }
+    function renderDayEvents() {
+      const day = parseKey(calSel);
+      document.getElementById('dayTitle').textContent = 'Eventos del ' + cap(day.toLocaleDateString('es-VE', { weekday: 'long', day: 'numeric', month: 'long' }));
+      const evs = events.filter(e => e.date === calSel);
+      document.getElementById('dayEvents').innerHTML = evs.length
+        ? evs.map(evItem).join('')
+        : '<div class="empty">Sin eventos este día.</div>';
+      wireDel();
+    }
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function renderUpcoming() {
+      const ul = document.getElementById('calUpcoming');
+      const tk = todayKey();
+      const up = events.filter(e => e.date >= tk).sort((a, b) => a.date < b.date ? -1 : 1);
+      if (!up.length) { ul.innerHTML = '<li>No hay fechas próximas anotadas. Añade una arriba 👆</li>'; return; }
+      ul.innerHTML = up.map(e => {
+        const days = Math.round((parseKey(e.date).getTime() - parseKey(tk).getTime()) / 86400000);
+        const when = days === 0 ? 'Hoy' : 'En ' + days + ' día' + (days > 1 ? 's' : '');
+        return '<li>🗓️ <b>' + when + '</b> · ' + escapeHtml(e.title) +
+          (e.amount ? ' · ' + fmtMoney(e.amount, e.currency) : '') +
+          (e.date > tk ? ' · <span style="color:var(--muted)">' + e.date + '</span>' : '') + '</li>';
+      }).join('');
+    }
+    function showReminders() {
+      const banner = document.getElementById('notifBanner');
+      const tk = todayKey();
+      const tkT = parseKey(tk).getTime();
+      const items = [];
+      events.forEach(e => {
+        const days = Math.round((parseKey(e.date).getTime() - tkT) / 86400000);
+        if (days < 0) items.push({ e, label: 'Vencido (' + e.date + ')' });
+        else if (days === 0) items.push({ e, label: 'HOY' });
+        else if (days <= 7) items.push({ e, label: 'En ' + days + ' día' + (days > 1 ? 's' : '') });
+      });
+      items.sort((a, b) => a.e.date < b.e.date ? -1 : 1);
+      if (!items.length) { banner.classList.remove('show'); return; }
+      let footer = '';
+      if ('Notification' in window) {
+        const isOn = localStorage.getItem(NOTIFY_STORAGE + (currentUser || '')) !== 'off';
+        if (Notification.permission === 'default') {
+          footer = '<button type="button" class="nb-activate" id="nbAsk">🔔 Activar notificaciones del sistema</button>';
+        } else if (Notification.permission === 'granted') {
+          footer = '<button type="button" class="nb-activate" id="nbToggle">' + (isOn ? '🔕 Desactivar notificaciones del sistema' : '🔔 Activar notificaciones del sistema') + '</button>';
+        } else {
+          footer = '<span class="nb-blocked">Notificaciones bloqueadas en tu navegador. Habilítalas desde los ajustes del navegador.</span>';
+        }
+      }
+      banner.innerHTML = '<div class="nb-title">🔔 Recordatorios</div><ul>' + items.slice(0, 6).map(x =>
+        '<li>📅 ' + x.label + ' — <b>' + escapeHtml(x.e.title) + '</b>' + (x.e.amount ? ' · ' + fmtMoney(x.e.amount, x.e.currency) : '') + '</li>'
+      ).join('') + '</ul>' + footer;
+      banner.classList.add('show');
+      const askBtn = document.getElementById('nbAsk');
+      if (askBtn) askBtn.addEventListener('click', () => {
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') { notifyReminders(); showReminders(); }
+        });
+      });
+      const tgl = document.getElementById('nbToggle');
+      if (tgl) tgl.addEventListener('click', () => {
+        const k = NOTIFY_STORAGE + (currentUser || '');
+        if (localStorage.getItem(k) === 'off') localStorage.removeItem(k); else localStorage.setItem(k, 'off');
+        showReminders();
+      });
+    }
+    function notifyReminders() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      if (localStorage.getItem(NOTIFY_STORAGE + (currentUser || '')) === 'off') return;
+      const tk = todayKey();
+      const tkT = parseKey(tk).getTime();
+      const lines = [];
+      events.forEach(e => {
+        const days = Math.round((parseKey(e.date).getTime() - tkT) / 86400000);
+        if (days < 0) lines.push('Vencido (' + e.date + '): ' + e.title);
+        else if (days === 0) lines.push('HOY: ' + e.title);
+        else if (days <= 7) lines.push('En ' + days + ' día' + (days > 1 ? 's' : '') + ': ' + e.title);
+      });
+      if (!lines.length) return;
+      try {
+        new Notification('🔔 Recordatorios de pagos', { body: lines.slice(0, 5).join('\n') });
+      } catch (e) { /* sin fallo visible */ }
+    }
+    let calYear, calMonth, calSel = todayKey();
+    document.getElementById('evDate').value = todayKey();
+    document.getElementById('eventForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      const date = document.getElementById('evDate').value;
+      const title = document.getElementById('evTitle').value.trim();
+      if (!date || !title) return;
+      events.push({
+        id: Date.now(),
+        date,
+        title,
+        note: document.getElementById('evNote').value.trim(),
+        amount: parseFloat(document.getElementById('evAmount').value) || 0,
+        currency: document.getElementById('evCurr').value
+      });
+      localStorage.setItem(keyFor(EVENTS_STORAGE), JSON.stringify(events));
+      calSel = date;
+      this.reset();
+      document.getElementById('evDate').value = date;
+      renderCalendar();
+      showReminders();
+      addLog('add', 'Agregó al calendario: ' + title + ' (' + date + ')');
+      renderLog();
+    });
+    document.getElementById('calPrev').addEventListener('click', () => {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    });
+    document.getElementById('calNext').addEventListener('click', () => {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    });
+
+    // ===== Exportar / importar calendario (.ics) =====
+    function icsDate(d) {
+      return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    }
+    function escIcs(s) { return String(s).replace(/[\\;,]/g, c => '\\' + c).replace(/\r?\n/g, '\\n'); }
+    document.getElementById('icsBtn').addEventListener('click', () => {
+      if (!events.length) { alert('No hay fechas en el calendario para exportar.'); return; }
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Control de Gastos//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+      const stamp = icsDate(new Date()) + 'T' + new Date().toTimeString().slice(0, 8).replace(/:/g, '');
+      events.forEach(e => {
+        lines.push('BEGIN:VEVENT');
+        lines.push('UID:' + e.id + '@control-gastos');
+        lines.push('DTSTAMP:' + stamp);
+        lines.push('DTSTART;VALUE=DATE:' + icsDate(parseKey(e.date)));
+        lines.push('SUMMARY:' + escIcs(e.title + (e.amount ? ' (' + fmtMoney(e.amount, e.currency) + ')' : '')));
+        if (e.note) lines.push('DESCRIPTION:' + escIcs(e.note));
+        lines.push('END:VEVENT');
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mi_calendario.ics';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      addLog('add', 'Exportó el calendario a .ics (' + events.length + ' fechas)');
+      renderLog();
+    });
+    document.getElementById('importIcsBtn').addEventListener('click', () => document.getElementById('icsFile').click());
+    document.getElementById('icsFile').addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!f) return;
+      try {
+        const txt = await f.text();
+        const blocks = txt.split('BEGIN:VEVENT');
+        let added = 0;
+        blocks.forEach(block => {
+          const dt = (block.match(/DTSTART;VALUE=DATE:(\d{8})/) || block.match(/DTSTART:(\d{8})/));
+          if (!dt) return;
+          const y = +dt[1].slice(0, 4), mo = +dt[1].slice(4, 6), d = +dt[1].slice(6, 8);
+          const title = (block.match(/SUMMARY:(.*)/) || [])[1] || 'Fecha importada';
+          const note = (block.match(/DESCRIPTION:(.*)/) || [])[1] || '';
+          const clean = s => String(s).replace(/\\n/gi, '\n').replace(/\\([\;,])/g, '$1').trim();
+          const date = dateKey(new Date(y, mo - 1, d));
+          if (events.some(x => x.date === date && x.title === clean(title))) return;
+          events.push({ id: Date.now() + added++, date, title: clean(title), note: clean(note).replace(/\n/g, ' '), amount: 0, currency: 'USD' });
+        });
+        if (!added) { alert('No se encontraron fechas válidas en el archivo.'); return; }
+        localStorage.setItem(keyFor(EVENTS_STORAGE), JSON.stringify(events));
+        renderCalendar();
+        showReminders();
+        addLog('add', 'Importó ' + added + ' fecha(s) desde .ics');
+        renderLog();
+        alert('✅ Se importaron ' + added + ' fecha(s) al calendario.');
+      } catch (err) {
+        alert('❌ No se pudo leer el archivo .ics.');
+      }
+    });
+
+    // ===== Filtros por fecha =====
+    const fromEl = document.getElementById('from');
+    const toEl = document.getElementById('to');
+    const dateRange = document.getElementById('dateRange');
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filter = btn.dataset.filter;
+        dateRange.classList.toggle('visible', filter === 'custom');
+        render();
+      });
+    });
+
+    function inRange(d, start, end) {
+      const t = new Date(d).getTime();
+      return t >= start && t <= end;
+    }
+    function dateStart(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+    function parseDate(s) {
+      const p = s.split('-');
+      return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getTime();
+    }
+    function getFilter() {
+      const now = new Date();
+      const today = dateStart(now);
+      let start, end = today.getTime() + 86400000 - 1;
+      if (filter === 'hoy') {
+        start = today.getTime();
+      } else if (filter === 'semana') {
+        start = today.getTime() - 6 * 86400000;
+      } else if (filter === 'mes') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      } else {
+        const s = fromEl.value, t = toEl.value;
+        if (!s && !t) return expenses;
+        start = s ? parseDate(s) : 0;
+        end = t ? parseDate(t) + 86400000 - 1 : today.getTime() + 86400000 - 1;
+      }
+      return expenses.filter(x => inRange(x.date, start, end));
+    }
+
+    // ===== Presupuesto =====
+    budgetEl.addEventListener('input', () => {
+      localStorage.setItem(BUDGET_STORAGE, budgetEl.value);
+      render();
+    });
+    function renderBudget() {
+      const budget = parseFloat(budgetEl.value) || 0;
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+      let usd = 0, ves = 0;
+      expenses.forEach(x => {
+        const t = new Date(x.date).getTime();
+        if (t < start || t >= end) return;
+        if (x.currency === 'USD') usd += x.amount; else ves += x.amount;
+      });
+      const rate = parseFloat(rateEl.value) || 0;
+      const total = usd + (rate ? ves / rate : 0);
+      const label = document.getElementById('budgetLabel');
+      const bar = document.getElementById('budgetBar');
+      if (!budget || budget <= 0) {
+        bar.style.width = '0%';
+        bar.className = 'bar-fill ok';
+        label.textContent = 'Define un presupuesto para ver tu avance del mes.';
+        return;
+      }
+      const pct = Math.min(total / budget * 100, 100);
+      bar.style.width = pct + '%';
+      let cls = 'ok', msg;
+      if (total >= budget) { cls = 'over'; msg = 'Excediste el presupuesto. Gastaste $' + total.toFixed(2) + ' / $' + budget.toFixed(2); }
+      else if (total >= budget * 0.7) { cls = 'warn'; msg = 'Cerca del límite. Gastaste $' + total.toFixed(2) + ' / $' + budget.toFixed(2); }
+      else { msg = Math.round(pct) + '% del presupuesto usado ($' + total.toFixed(2) + ' / $' + budget.toFixed(2) + ')'; }
+      bar.className = 'bar-fill ' + cls;
+      label.textContent = msg;
+    }
+
+    // ===== Formulario =====
+    const dateInput = document.getElementById('date');
+    function toInputDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    const defaultDate = toInputDate(new Date());
+    dateInput.value = defaultDate;
+    const commentInput = document.getElementById('comment');
+    const addBtn = document.getElementById('addBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    function resetForm() {
+      editingId = null;
+      pendingReceipt = null;
+      form.reset();
+      dateInput.value = defaultDate;
+      document.getElementById('category').value = 'otros';
+      commentInput.value = '';
+      document.getElementById('receipt').value = '';
+      document.getElementById('receiptCam').value = '';
+      document.getElementById('receiptName').textContent = '';
+      document.querySelector('.receipt-wrap').classList.remove('has');
+      addBtn.textContent = 'Agregar';
+      cancelBtn.classList.add('hidden');
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const desc = document.getElementById('desc').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const currency = document.getElementById('currency').value;
+      const category = document.getElementById('category').value;
+      const date = document.getElementById('date').value || defaultDate;
+      const comment = commentInput.value.trim();
+      if (!desc || isNaN(amount) || amount < 0) return;
+      const p = date.split('-');
+      const ts = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getTime();
+      const user = currentUser || 'Invitado';
+
+      if (editingId !== null) {
+        const idx = expenses.findIndex(e => e.id === editingId);
+        if (idx !== -1) {
+          expenses[idx] = Object.assign({}, expenses[idx], { desc, amount, currency, category, date: ts, comment, receipt: pendingReceipt !== null ? pendingReceipt : expenses[idx].receipt });
+          addLog('edit', desc + ' (' + currency + ' ' + amount + ')');
+        }
+      } else {
+        expenses.push({ id: Date.now(), desc, amount, currency, category, date: ts, comment, user, receipt: pendingReceipt });
+        addLog('add', desc + ' (' + currency + ' ' + amount + ')');
+      }
+      save();
+      resetForm();
+    });
+
+    cancelBtn.addEventListener('click', resetForm);
+
+    function onReceiptFile(file) {
+      const nameEl = document.getElementById('receiptName');
+      const wrap = document.querySelector('.receipt-wrap');
+      if (!file) {
+        pendingReceipt = null;
+        nameEl.textContent = '';
+        wrap.classList.remove('has');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingReceipt = reader.result;
+        nameEl.textContent = 'Foto adjunta: ' + file.name;
+        wrap.classList.add('has');
+      };
+      reader.onerror = () => { alert('No se pudo leer la imagen.'); };
+      reader.readAsDataURL(file);
+    }
+    document.getElementById('receipt').addEventListener('change', e => onReceiptFile(e.target.files && e.target.files[0]));
+    document.getElementById('receiptCam').addEventListener('change', e => onReceiptFile(e.target.files && e.target.files[0]));
+
+    function save() {
+      localStorage.setItem(keyFor(STORAGE), JSON.stringify(expenses));
+      render();
+    }
+
+    // ===== Render =====
+    function currencySymbol(c) { return c === 'USD' ? '$' : 'Bs '; }
+    function formatUsd(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function formatVes(v) { return 'Bs ' + v.toLocaleString('es-VE', { maximumFractionDigits: 2 }); }
+    function fmtRef(v) { return prefs.currency === 'VES' ? formatVes(v) : formatUsd(v); }
+    function catById(id) { return getAllCats().find(c => c.id === id) || CATS[CATS.length - 1]; }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    function render() {
+      const rate = parseFloat(rateEl.value) || 0;
+      const filtered = getFilter();
+
+      let usd = 0, ves = 0;
+      filtered.forEach(x => { if (x.currency === 'USD') usd += x.amount; else ves += x.amount; });
+      const totalAll = usd + (rate ? ves / rate : 0);
+      const totalAllBs = ves + usd * rate;
+
+      document.getElementById('totalUsd').textContent = formatUsd(usd);
+      document.getElementById('totalVes').textContent = formatVes(ves);
+      const baseVes = prefs.currency === 'VES';
+      const refEl = document.getElementById('totalAll');
+      const secEl = document.getElementById('totalAllBs');
+      refEl.closest('.card').querySelector('.label').textContent = 'Referencia principal (' + (baseVes ? 'Bs' : '$') + ')';
+      secEl.closest('.card').querySelector('.label').textContent = baseVes ? 'En dólares ($)' : 'En bolívares (Bs)';
+      if (baseVes) {
+        refEl.textContent = formatVes(totalAllBs);
+        secEl.textContent = formatUsd(totalAll);
+      } else {
+        refEl.textContent = formatUsd(totalAll);
+        secEl.textContent = formatVes(totalAllBs);
+      }
+
+      renderBudget();
+
+      if (!filtered.length) {
+        listEl.innerHTML = '<div class="empty">No hay gastos en este periodo.</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.slice().reverse().map(x => {
+        const c = catById(x.category);
+        const cls = x.currency === 'USD' ? 'usd' : 'ves';
+        const date = new Date(x.date);
+        const meta = [x.user ? '👤 ' + x.user : '', x.comment ? '💬 ' + x.comment : ''].filter(Boolean).join(' · ');
+        return `
+          <div class="item">
+            <span class="chip" style="background:${c.color}33;color:${c.color}">${c.icon} ${c.label}</span>
+            <div class="main">
+              <div class="desc">${escapeHtml(x.desc)}</div>
+              ${meta ? '<div class="meta">' + escapeHtml(meta) + '</div>' : ''}
+              ${x.receipt ? '<img class="thumb" src="' + x.receipt + '" alt="Recibo" data-receipt="' + x.receipt + '">' : ''}
+            </div>
+            <div class="amount ${cls}">${currencySymbol(x.currency)}${x.amount.toLocaleString('en-US')}</div>
+            <div class="date">${date.toLocaleDateString('es-VE')}</div>
+            <div class="actions">
+              <button class="edit" data-id="${x.id}" title="Editar">✏️</button>
+              <button class="del" data-id="${x.id}" title="Eliminar">&times;</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      listEl.querySelectorAll('.thumb').forEach(img => {
+    img.addEventListener('click', () => {
+      document.getElementById('lbImg').src = img.dataset.receipt;
+      document.getElementById('lightbox').classList.add('show');
+    });
+  });
+
+  listEl.querySelectorAll('.del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = expenses.find(e => e.id === Number(btn.dataset.id));
+          if (item) addLog('delete', item.desc + ' (' + item.currency + ' ' + item.amount + ')');
+          expenses = expenses.filter(e => e.id !== Number(btn.dataset.id));
+          save();
+        });
+      });
+
+      listEl.querySelectorAll('.edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = expenses.find(e => e.id === Number(btn.dataset.id));
+          if (!item) return;
+          editingId = item.id;
+          document.getElementById('desc').value = item.desc;
+          document.getElementById('amount').value = item.amount;
+          document.getElementById('currency').value = item.currency;
+          document.getElementById('category').value = item.category;
+          dateInput.value = toInputDate(new Date(item.date));
+          commentInput.value = item.comment || '';
+          pendingReceipt = item.receipt || null;
+          document.getElementById('receipt').value = '';
+          document.getElementById('receiptCam').value = '';
+          document.getElementById('receiptName').textContent = item.receipt ? 'Foto ya adjuntada (puedes reemplazarla)' : '';
+          document.querySelector('.receipt-wrap').classList.toggle('has', !!item.receipt);
+          addBtn.textContent = 'Guardar cambios';
+          cancelBtn.classList.remove('hidden');
+          document.getElementById('desc').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          document.getElementById('desc').focus();
+        });
+      });
+    }
+
+    // ===== Tasa del día =====
+    rateEl.addEventListener('change', () => {
+      localStorage.setItem(RATE_STORAGE, rateEl.value);
+      render();
+    });
+
+    // ===== Conversor =====
+    const convUsd = document.getElementById('convUsd');
+    const convVes = document.getElementById('convVes');
+    let convLock = false;
+    function rateVal() { return parseFloat(rateEl.value) || 0; }
+    convUsd.addEventListener('input', () => {
+      if (convLock) return;
+      const r = rateVal(); const v = parseFloat(convUsd.value);
+      convLock = true; convVes.value = (isNaN(v) || !r) ? '' : (v * r).toFixed(2); convLock = false;
+    });
+    convVes.addEventListener('input', () => {
+      if (convLock) return;
+      const r = rateVal(); const v = parseFloat(convVes.value);
+      convLock = true; convUsd.value = (isNaN(v) || !r) ? '' : (v / r).toFixed(2); convLock = false;
+    });
+
+    // ===== BCV actual =====
+    async function loadBCV() {
+      const els = document.querySelectorAll('.bcv-rate');
+      const upds = document.querySelectorAll('.bcv-update');
+      const btns = document.querySelectorAll('.use');
+      btns.forEach(b => b.disabled = true);
+      try {
+        const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+        if (!res.ok) throw new Error('http');
+        const data = await res.json();
+        const precio = Number(data.promedio);
+        if (!isFinite(precio) || precio <= 0) throw new Error('precio');
+        const text = 'Bs ' + precio.toLocaleString('es-VE', { maximumFractionDigits: 2 });
+        const updateText = 'Actualizado: ' + new Date(data.fechaActualizacion).toLocaleString('es-VE');
+        els.forEach(el => el.textContent = text);
+        upds.forEach(u => u.textContent = updateText);
+        btns.forEach(b => {
+          b.disabled = false;
+          b.onclick = () => { rateEl.value = precio.toFixed(2); localStorage.setItem(RATE_STORAGE, rateEl.value); render(); };
+        });
+      } catch (err) {
+        els.forEach(el => el.textContent = 'No disponible');
+        upds.forEach(u => u.textContent = 'Revisa tu conexión a internet');
+      }
+    }
+
+    // ===== Histórico BCV (gráfica) =====
+    function chartColors() {
+      const dark = document.documentElement.dataset.theme === 'dark';
+      return {
+        grid: dark ? '#263040' : '#e2e8f0',
+        accent: '#38bdf8',
+        text: dark ? '#7c8db3' : '#64748b',
+        fillTop: 'rgba(56,189,248,0.35)',
+        fillBottom: 'rgba(56,189,248,0)'
+      };
+    }
+
+    let historyRows = null;
+    function fmtDate(iso) {
+      const p = iso.split('-');
+      return p[2] + '/' + p[1];
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('https://ve.dolarapi.com/v1/historicos/dolares/oficial');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        historyRows = data.slice(-7);
+      } catch (e) {
+        historyRows = null;
+      }
+      renderChart();
+    }
+
+    function renderChart() {
+      const canvas = document.getElementById('chart');
+      if (!canvas) return;
+      const box = canvas.parentElement;
+      const cssW = box.clientWidth || 600;
+      const cssH = 170;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = cssW * dpr;
+      canvas.height = cssH * dpr;
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const colors = chartColors();
+
+      if (!historyRows || !historyRows.length) {
+        ctx.fillStyle = colors.text;
+        ctx.font = 'bold 13px Lexend, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sin conexión para mostrar el histórico.', cssW / 2, cssH / 2);
+        return;
+      }
+
+      const padT = 18, padR = 14, padB = 22, padL = 12;
+      const iw = cssW - padL - padR, ih = cssH - padT - padB;
+      const values = historyRows.map(r => Number(r.promedio));
+      const labels = historyRows.map(r => r.fecha);
+      const minV = Math.min(...values), maxV = Math.max(...values);
+      const padV = (maxV - minV) * 0.1 || 1;
+      const lo = minV - padV, hi = maxV + padV, rng = (hi - lo) || 1;
+      const pts = values.map((v, i) => ({
+        x: padL + (iw * i) / (values.length - 1),
+        y: padT + ih - ((v - lo) / rng) * ih
+      }));
+
+      ctx.clearRect(0, 0, cssW, cssH);
+
+      // rejilla
+      ctx.strokeStyle = colors.grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let g = 0; g <= 4; g++) {
+        const y = padT + (ih / 4) * g;
+        ctx.moveTo(padL, y);
+        ctx.lineTo(cssW - padR, y);
+      }
+      ctx.stroke();
+
+      // relleno degradado bajo la línea
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + ih);
+      grad.addColorStop(0, colors.fillTop);
+      grad.addColorStop(1, colors.fillBottom);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, padT + ih);
+      pts.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.lineTo(pts[pts.length - 1].x, padT + ih);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // línea
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = colors.accent;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // puntos
+      pts.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = colors.accent;
+        ctx.stroke();
+      });
+
+      // etiquetas de fechas por día
+      ctx.fillStyle = colors.text;
+      ctx.font = '600 9px Lexend, sans-serif';
+      labels.forEach((l, i) => {
+        ctx.textAlign = i === 0 ? 'left' : (i === labels.length - 1 ? 'right' : 'center');
+        ctx.fillText(fmtDate(l), pts[i].x, cssH - 4);
+      });
+
+      // valores máx y mín
+      ctx.textAlign = 'right';
+      ctx.font = '600 10px Lexend, sans-serif';
+      ctx.fillText(hi.toFixed(2), cssW - padR, padT);
+      ctx.fillText(lo.toFixed(2), cssW - padR, padT + ih);
+    }
+
+    window.addEventListener('resize', renderChart);
+    window.addEventListener('resize', () => { renderCatChart(); renderDayChart(); });
+
+    // ===== Exportar Excel =====
+    document.getElementById('exportBtn').addEventListener('click', exportExcel);
+    function exportExcel() {
+      const filtered = getFilter();
+      if (!filtered.length) { alert('No hay gastos para exportar.'); return; }
+      const rate = parseFloat(rateEl.value) || 0;
+      const n = (v, d = 2) => { const x = Number(v); return isNaN(x) ? '' : x.toFixed(d); };
+      const rows = [['Fecha', 'Categoría', 'Descripción', 'Comentario', 'Usuario', 'Moneda', 'Monto', 'Tasa (Bs/$)', 'Equivalente en $']];
+      filtered.forEach(x => {
+        const c = catById(x.category);
+        const eq = x.currency === 'USD' ? x.amount : (rate ? x.amount / rate : 0);
+        rows.push([
+          new Date(x.date).toLocaleDateString('es-VE'),
+          c.label,
+          x.desc,
+          x.comment || '',
+          x.user || '',
+          x.currency,
+          n(x.amount),
+          x.currency === 'USD' ? '' : (rate || ''),
+          n(eq)
+        ]);
+      });
+      let usd = 0, ves = 0;
+      filtered.forEach(x => { if (x.currency === 'USD') usd += x.amount; else ves += x.amount; });
+      const totalAll = usd + (rate ? ves / rate : 0);
+      rows.push([]);
+      rows.push(['Total USD', '', n(usd)]);
+      rows.push(['Total Bs', '', n(ves)]);
+      rows.push(['Total aprox. ($)', '', n(totalAll)]);
+      const html = '<table border="1">' + rows.map(r => '<tr>' + r.map(c => '<td>' + (c === null || c === undefined ? '' : escapeHtml(String(c))) + '</td>').join('') + '</tr>').join('') + '</table>';
+      const blob = new Blob(['\ufeff', html], { type: 'application/vnd.ms-excel' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mis_gastos.xls';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ===== Exportar a PDF =====
+    document.getElementById('pdfBtn').addEventListener('click', () => {
+      const rate = parseFloat(rateEl.value) || 0;
+      const filtered = getFilter();
+      let usd = 0, ves = 0;
+      filtered.forEach(x => { if (x.currency === 'USD') usd += x.amount; else ves += x.amount; });
+      const totalAll = usd + (rate ? ves / rate : 0);
+      let rows = '';
+      filtered.slice().reverse().forEach(x => {
+        const c = catById(x.category);
+        rows += '<tr><td>' + escapeHtml(c.label) + '</td><td>' + escapeHtml(x.desc) + '</td><td>' + escapeHtml(x.comment || '') + '</td><td>' + escapeHtml(x.user || '') + '</td><td>' + x.currency + '</td><td>' + x.amount + '</td><td>' + new Date(x.date).toLocaleDateString('es-VE') + '</td></tr>';
+      });
+      const raport = document.getElementById('printReport');
+      raport.innerHTML =
+        '<h1>Reporte de Gastos</h1>' +
+        '<p>Generado: ' + new Date().toLocaleString('es-VE') + ' | Periodo: ' + filterLabel() + '</p>' +
+        '<p>Total USD: ' + formatUsd(usd) + ' | Total Bs: ' + formatVes(ves) + ' | Total aprox. ($): ' + formatUsd(totalAll) + '</p>' +
+        '<table><tr><th>Categoría</th><th>Descripción</th><th>Comentario</th><th>Usuario</th><th>Moneda</th><th>Monto</th><th>Fecha</th></tr>' + rows + '</table>';
+      window.print();
+    });
+    function filterLabel() {
+      const names = { hoy: 'Hoy', semana: 'Última semana', mes: 'Mes actual', custom: 'Personalizado' };
+      return names[filter];
+    }
+
+    // ===== Respaldo (exportar / restaurar) =====
+    document.getElementById('backupBtn').addEventListener('click', () => {
+      const data = { expenses, log, events, customCats, accounts, rate: rateEl.value, budget: budgetEl.value, version: 1 };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'respaldo_control_gastos.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('restoreBtn').addEventListener('click', () => document.getElementById('restoreFile').click());
+    document.getElementById('restoreFile').addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!f) return;
+      try {
+        const d = JSON.parse(await f.text());
+        if (!Array.isArray(d.expenses)) throw new Error('invalido');
+        expenses = d.expenses || [];
+        log = d.log || [];
+        events = d.events || [];
+        customCats = Array.isArray(d.customCats) ? d.customCats : [];
+        if (Array.isArray(d.accounts)) accounts = d.accounts;
+        if (d.rate !== undefined && d.rate !== null) { rateEl.value = d.rate; localStorage.setItem(RATE_STORAGE, rateEl.value); }
+        if (d.budget !== undefined && d.budget !== null) { budgetEl.value = d.budget; localStorage.setItem(BUDGET_STORAGE, budgetEl.value); }
+        localStorage.setItem(keyFor(STORAGE), JSON.stringify(expenses));
+        localStorage.setItem(keyFor(LOG_STORAGE), JSON.stringify(log));
+        localStorage.setItem(keyFor(EVENTS_STORAGE), JSON.stringify(events));
+        localStorage.setItem(keyFor(CUSTOM_CATS_STORAGE), JSON.stringify(customCats));
+        localStorage.setItem(AUTH_ACCOUNTS, JSON.stringify(accounts));
+        populateCats();
+        renderCustomCatList();
+        render();
+        renderStats();
+        renderCalendar();
+        renderLog();
+        addLog('edit', 'Restauró un respaldo completo de datos');
+        renderLog();
+        alert('✅ Respaldo restaurado correctamente.');
+      } catch (err) {
+        alert('❌ El archivo no es un respaldo válido.');
+      }
+    });
+
+    // ===== Estadísticas =====
+    function usdValue(x, rate) { return x.currency === 'USD' ? x.amount : (rate ? x.amount / rate : 0); }
+    function monthSumInUsd(year, month, rate) {
+      const start = new Date(year, month, 1).getTime();
+      const end = new Date(year, month + 1, 1).getTime();
+      let t = 0;
+      expenses.forEach(x => { const ts = new Date(x.date).getTime(); if (ts >= start && ts < end) t += usdValue(x, rate); });
+      return t;
+    }
+    function renderStats() {
+      const rate = rateVal();
+      const now = new Date();
+      const cur = monthSumInUsd(now.getFullYear(), now.getMonth(), rate);
+      const pd = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const prev = monthSumInUsd(pd.getFullYear(), pd.getMonth(), rate);
+      const diff = cur - prev;
+      const r = rateVal();
+      const inBase = v => prefs.currency === 'VES' ? (r ? v * r : 0) : v;
+      const diffEl = document.getElementById('statDiff');
+      document.getElementById('statCur').textContent = fmtRef(inBase(cur));
+      document.getElementById('statPrev').textContent = fmtRef(inBase(prev));
+      diffEl.textContent = fmtRef(inBase(diff));
+      diffEl.closest('.stat-card').className = 'stat-card diff ' + (Math.abs(diff) < 0.005 ? 'zero' : (diff < 0 ? 'pos' : 'neg'));
+      renderCatChart();
+      renderDayChart();
+    }
+
+    function renderCatChart() {
+      const canvas = document.getElementById('catChart');
+      if (!canvas) return;
+      const box = canvas.parentElement;
+      const cssW = box.clientWidth || 600;
+      const cssH = 200;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+      canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+      const rate = rateVal();
+      const filtered = getFilter();
+      const byCat = {};
+      filtered.forEach(x => { const c = catById(x.category); byCat[c.id] = (byCat[c.id] || 0) + usdValue(x, rate); });
+      const legend = document.getElementById('catLegend');
+      const entries = Object.entries(byCat).filter(e => e[1] > 0.005).sort((a, b) => b[1] - a[1]);
+      const total = entries.reduce((s, e) => s + e[1], 0);
+      legend.innerHTML = '';
+      const seriesByCat = {};
+      filtered.forEach(x => {
+        const k = dateKey(new Date(x.date));
+        (seriesByCat[x.category] = seriesByCat[x.category] || {})[k] = (seriesByCat[x.category][k] || 0) + usdValue(x, rate);
+      });
+      const colors = chartColors();
+      if (!entries.length || total <= 0) {
+        ctx.fillStyle = colors.text; ctx.font = 'bold 13px Lexend, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Sin gastos en este periodo.', cssW / 2, cssH / 2);
+        return;
+      }
+      const size = Math.min(cssW, cssH) - 40;
+      const cx = cssW / 2, cy = cssH / 2, rad = size / 2;
+      let angle = -Math.PI / 2;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = chartColors().text;
+      entries.forEach(([id, val]) => {
+        const c = catById(id).color;
+        const sweep = (val / total) * Math.PI * 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, rad, angle, angle + sweep);
+        ctx.closePath(); ctx.fillStyle = c; ctx.fill();
+        ctx.strokeStyle = chartColors().text; ctx.stroke();
+        angle += sweep;
+      });
+      ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.strokeStyle = chartColors().grid; ctx.stroke();
+      entries.forEach(([id, val]) => {
+        const c = catById(id);
+        const row = document.createElement('div');
+        row.className = 'lg-row';
+        row.innerHTML = '<span class="lg-dot" style="background:' + c.color + '"></span>' +
+          '<span class="lg-label">' + c.icon + ' ' + escapeHtml(c.label) + '</span>' +
+          '<canvas class="lg-spark" width="48" height="16" data-cat="' + id + '"></canvas>' +
+          '<span class="lg-val">' + formatUsd(val) + ' (' + Math.round(val / total * 100) + '%)</span>';
+        legend.appendChild(row);
+      });
+      legend.querySelectorAll('.lg-spark').forEach(cv => {
+        const sObj = seriesByCat[cv.dataset.cat];
+        const keys = sObj ? Object.keys(sObj).sort() : [];
+        drawSpark(cv, keys.map(k => sObj[k]), catById(cv.dataset.cat).color);
+      });
+    }
+
+    function drawSpark(canvas, vals, color) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      if (!vals.length) return;
+      const maxV = Math.max.apply(null, vals);
+      const max = Math.max(maxV, 1);
+      const n = vals.length;
+      const pts = vals.map((v, i) => ({
+        x: i * (W - 1) / (n - 1 || 1),
+        y: H - 2 - (v / max) * (H - 4)
+      }));
+      if (n === 1) pts[0] = { x: W / 2, y: H / 2 };
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    function renderDayChart() {
+      const canvas = document.getElementById('dayChart');
+      if (!canvas) return;
+      const box = canvas.parentElement;
+      const cssW = box.clientWidth || 600;
+      const cssH = 160;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = cssW * dpr; canvas.height = cssH * dpr;
+      canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssW, cssH);
+      const colors = chartColors();
+      const rate = rateVal();
+      const filtered = getFilter();
+      const dayMap = {};
+      filtered.forEach(x => { const k = dateKey(new Date(x.date)); dayMap[k] = (dayMap[k] || 0) + usdValue(x, rate); });
+      const keys = Object.keys(dayMap).sort();
+      const padT = 18, padR = 12, padB = 20, padL = 12;
+      const iw = cssW - padL - padR, ih = cssH - padT - padB;
+      if (!keys.length) {
+        ctx.fillStyle = colors.text; ctx.font = 'bold 13px Lexend, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Sin gastos en este periodo.', cssW / 2, cssH / 2);
+        return;
+      }
+      const values = keys.map(k => dayMap[k]);
+      const maxV = Math.max.apply(null, values.concat([1])) * 1.15;
+      const pts = values.map((v, i) => ({
+        x: padL + (values.length > 1 ? (iw * i) / (values.length - 1) : iw / 2),
+        y: padT + ih - Math.min(v / maxV, 1) * ih
+      }));
+      ctx.strokeStyle = colors.grid; ctx.lineWidth = 1; ctx.beginPath();
+      for (let g = 0; g <= 4; g++) { const y = padT + (ih / 4) * g; ctx.moveTo(padL, y); ctx.lineTo(cssW - padR, y); }
+      ctx.stroke();
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + ih);
+      grad.addColorStop(0, colors.fillTop); grad.addColorStop(1, colors.fillBottom);
+      ctx.beginPath(); ctx.moveTo(pts[0].x, padT + ih);
+      pts.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.lineTo(pts[pts.length - 1].x, padT + ih); ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = colors.accent; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.stroke();
+      pts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = colors.accent; ctx.stroke(); });
+      ctx.fillStyle = colors.text; ctx.font = '600 9px Lexend, sans-serif';
+      keys.forEach((l, i) => {
+        ctx.textAlign = i === 0 ? 'left' : (i === keys.length - 1 ? 'right' : 'center');
+        ctx.fillText(fmtDate(l), pts[i].x, cssH - 6);
+      });
+    }
+
+    // Iniciar
+    render();
+    loadBCV();
+    loadHistory();
+    (function autoLogin() {
+      const sessionUser = localStorage.getItem(AUTH_SESSION);
+      if (sessionUser && accountByName(sessionUser)) enterApp(accountByName(sessionUser).name);
+    })();
+  </script>
+</body>
+</html>
